@@ -1,0 +1,1033 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0068)https://horus.saude.gov.br/horus/paginas/dispensacao/dispensacao.jsf -->
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="X-UA-Compatible" content="IE=8">
+<title>HÓRUS -Sistema Nacional de Gestão da Assistência Farmacêutica</title>
+<script src="./SiteHorus_files/framework.pack.js.jsf" type="text/javascript"></script><script src="./SiteHorus_files/ui.pack.js.jsf" type="text/javascript"></script><link class="component" href="./SiteHorus_files/eAF7sqpgb-jyGdIAFrMEaw__.jsf" rel="stylesheet" type="text/css"><link class="component" href="./SiteHorus_files/eAF7sqpgb-jyGdIAFrMEaw__(1).jsf" rel="stylesheet" type="text/css"><link class="component" href="./SiteHorus_files/eAF7sqpgb-jyGdIAFrMEaw__(2).jsf" rel="stylesheet" type="text/css"><script id="org.ajax4jsf.queue_script" type="text/javascript">if (typeof A4J != 'undefined') { if (A4J.AJAX) { with (A4J.AJAX) {if (!EventQueue.getQueue('org.richfaces.queue.global')) { EventQueue.addQueue(new EventQueue('org.richfaces.queue.global',null,null)) };}}};</script><script type="text/javascript">window.RICH_FACES_EXTENDED_SKINNING_ON=true;</script><link href="./SiteHorus_files/geral.css" rel="stylesheet" type="text/css">
+
+<script src="./SiteHorus_files/jquery.maskedinput-1.2.2.js" type="text/javascript"></script>
+<script src="./SiteHorus_files/jquery.maskMoney.js" type="text/javascript"></script>
+<script src="./SiteHorus_files/jquery.validate.js" type="text/javascript"></script>
+<script src="./SiteHorus_files/jquery.alphanumeric.js" type="text/javascript"></script>
+
+<script language="javascript">
+	function confirmaOperacao(msg)
+	{
+		if (!msg)
+			msg = "Deseja confirmar a operação?";
+		var r = confirm(msg);
+		if (r==true) {
+		  return true;
+		} else {
+		  return false;
+		}
+	}
+
+	function errorSemResultadoIndigena()
+	{
+		document.getElementById('errorMessage').innerHTML = "Nenhum registro encontrado.";
+		document.getElementById('errorDialog').component.show();
+	}
+
+	function errorDialogMinimoQuatroCaracteres()
+	{
+		document.getElementById('errorMessage').innerHTML = "Digite no mínimo '4' caracteres. ";
+		document.getElementById('errorDialog').component.show();
+	}
+
+	function errorSemResultado()
+	{
+		document.getElementById('errorMessage').innerHTML = "Nenhum registro encontrado.";
+		document.getElementById('errorDialog').component.show();
+	}
+
+	function validarCPF(Objcpf)
+	{
+		if (Objcpf.value == "___.___.___-__") return true;
+		
+		var cpf = Objcpf.value;
+		exp = /\.|\-/g;
+		cpf = cpf.toString().replace( exp, "" );
+		var digitoDigitado = eval(cpf.charAt(9)+cpf.charAt(10));
+		var soma1=0, soma2=0;
+		var vlr =11;
+
+		for(i=0;i < 9;i++){
+			soma1+=eval(cpf.charAt(i)*(vlr-1));
+			soma2+=eval(cpf.charAt(i)*vlr);
+			vlr--;
+		}
+
+		soma1 = (((soma1*10)%11)==10 ? 0:((soma1*10)%11));
+		soma2=(((soma2+(2*soma1))*10)%11);
+
+		var digitoGerado=(soma1*10)+soma2;
+		if(digitoGerado!=digitoDigitado)
+		{
+			alert("CPF Inválido");
+			Objcpf.value = "";
+		}
+	}
+
+	function validarCNPJ(ObjCnpj){
+		if (ObjCnpj.value == "__.___.___/____-__") return true;
+		var cnpj = ObjCnpj.value;
+		var valida = new Array(6,5,4,3,2,9,8,7,6,5,4,3,2);
+		var dig1= new Number;
+		var dig2= new Number;
+
+		exp = /\.|\_|\-|\//g;
+		cnpj = cnpj.toString().replace( exp, "" );
+		var digito = new Number(eval(cnpj.charAt(12)+cnpj.charAt(13)));
+
+		for(i = 0; i < valida.length; i++){
+			dig1 += (i > 0? (cnpj.charAt(i-1)*valida[i]):0);
+			dig2 += cnpj.charAt(i)*valida[i];
+		}
+
+		dig1 = (((dig1%11) < 2)? 0:(11-(dig1%11)));
+		dig2 = (((dig2%11) < 2)? 0:(11-(dig2%11)));
+
+		if (((dig1*10)+dig2) != digito)
+		{
+			alert("CNPJ Inválido");
+			ObjCnpj.value = "";
+		}
+	}
+
+	function checkNext() {
+        /*var nxt = 5;
+		var sessionid = 'JQNq9ZHLwxfbhDTzx2THNMG4';
+		var forms = document.forms;
+		for (var i = 0; i < forms.length; i++) {
+			var form = forms[i];
+			var div = document.createElement('DIV');
+			div.innerHTML = '<input name="nextStep" value="'+nxt+'" type="hidden" >'+
+			'<input name="sessionId" value="'+sessionid+'" type="hidden" >';
+			form.appendChild(div);
+        }*/ 
+	}
+
+	$(function(){
+		$('.telefone').focusout(function(){
+		var phone, element;
+		element = $(this);
+		element.unmask();
+		phone = element.val().replace(/\D/g, '');
+		if(phone.length > 10) {
+		element.mask("(99) 99999-999?9");
+		} else {
+		element.mask("(99) 9999-9999?9");
+		}
+		}).trigger('focusout');
+		});
+
+	function validarCamposObrigatoriosForms(campos) { 
+		// Separa a String que é passada na ação dp botão. Formato:(NomeDoFormulario#IdCampoErro1-InCampoObrigatorio1;IdCampoErro2-InCampoObrigatorio2)
+		var separaForm = campos.split('#');
+
+		// Pega o nome do Form
+		var nomeForm = separaForm[0];
+
+		// Pega o Id do campo que vai receber a mensagem de erro + o Id do campo Obrigatório
+		var arrayCampos = separaForm[1].split(';');
+
+		// Verifica a Quantidade de registros separados por ; .
+		var cont = arrayCampos.size();
+
+		// Variável que determina se irá retornar para a página ou não.
+		var campoVazio = 'NAO';
+
+		// Faz o For para ler todos os registros
+		for(var i=0; i < cont; i++){
+			// separa o Id do campo que vai receber a mensagem de erro do Id do campo Obrigatório
+			var separaCampo = arrayCampos[i].split('-');
+			var campoErro = separaCampo[0];
+			var nomeCampo = separaCampo[1];
+			
+			// Recebe o valor do campo Obrigatório
+			var dado = document.getElementById(nomeForm+':'+nomeCampo).value;
+
+			// Limpa a mensagem de erro.
+			document.getElementById(nomeForm+':'+campoErro).innerHTML="";
+
+			// Verifica se o campo está vazio
+			if(dado == ''){
+				// Caso esteja vazio, preenche o OutputText com a mensagem de erro.
+				document.getElementById(nomeForm+':'+campoErro).innerHTML="Campo obrigatório.";
+				// preenche a variável para que ocorra o retorno à tela.
+				campoVazio = 'SIM';
+			}
+		}
+		// Verifica se algum campo Obrigatório ficou em branco.
+		if(campoVazio == 'SIM'){
+			// retorna para a página
+			return false;
+		}
+		else{
+			return true;
+		}
+	} 
+
+	function validarCamposObrigatorios(campos) { 
+		// Separa a String que é passada na ação dp botão. Formato:(tipoRelatorio##NomeDoFormulario#IdCampoErro1-InCampoObrigatorio1;IdCampoErro2-InCampoObrigatorio2)
+		var separaTipo = campos.split('##');
+
+		// Pega o tipo do Relatório (xls ou pdf)
+		var tipoRelatorio = separaTipo[0];
+
+		// separa o id do Form dos campos.
+		var separaForm = separaTipo[1].split('#');
+		
+		// Pega o nome do Form
+		var nomeForm = separaForm[0];
+		document.getElementById(nomeForm+':formatoXls').value=tipoRelatorio;
+
+		// Pega o Id do campo que vai receber a mensagem de erro + o Id do campo Obrigatório
+		var arrayCampos = separaForm[1].split(';');
+
+		// Verifica a Quantidade de registros separados por ; .
+		var cont = arrayCampos.size();
+
+		// Variável que determina se irá retornar para a página ou não.
+		var campoVazio = 'NAO';
+
+		// Faz o For para ler todos os registros
+		for(var i=0; i < cont; i++){
+			// separa o Id do campo que vai receber a mensagem de erro do Id do campo Obrigatório
+			var separaCampo = arrayCampos[i].split('-');
+			var campoErro = separaCampo[0];
+			var nomeCampo = separaCampo[1];
+			
+			// Recebe o valor do campo Obrigatório
+			var dado = document.getElementById(nomeForm+':'+nomeCampo).value;
+
+			// Limpa a mensagem de erro.
+			document.getElementById(nomeForm+':'+campoErro).innerHTML="";
+
+			// Verifica se o campo está vazio
+			if(dado == ''|| dado == 0 || dado == 'Selecione'){
+				// Caso esteja vazio, preenche o OutputText com a mensagem de erro.
+				document.getElementById(nomeForm+':'+campoErro).innerHTML="Campo obrigatório.";
+				// preenche a variável para que ocorra o retorno à tela.
+				campoVazio = 'SIM';
+			}
+		}
+		// Verifica se algum campo Obrigatório ficou em branco.
+		if(campoVazio == 'SIM'){
+			// retorna para a página
+			return false;
+		}
+		else{
+			return true;
+		}
+	} 	
+
+	// <![CDATA[
+	function validaDataMaiorQueHoje(dataTela){
+		// Separa a data que é preenchida na tela
+		var separaData = dataTela.split("/");
+
+		// Pega a data atual do servidor
+		var dataHoje = new Date();
+		var diaHoje     = dataHoje.getDate();           
+		var mesHoje     = dataHoje.getMonth()+1;          
+		var anoHoje    	= dataHoje.getFullYear();  
+		if(diaHoje<10){diaHoje='0'+diaHoje;}
+		if(mesHoje<10){mesHoje='0'+mesHoje;}
+
+		// Testa se a data 
+		if(separaData[2] < anoHoje){
+			return true;
+		}else if(separaData[2] == anoHoje && separaData[1] == mesHoje && separaData[0] < diaHoje){
+			return true;
+		}else if(separaData[2] == anoHoje && separaData[1] < mesHoje){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+	// ]]>
+
+
+	// <![CDATA[
+    function conferePeriodoValido(dataInicial, dataFinal){
+        
+        var dtInicial = stringToDate(dataInicial,"dd/MM/yyyy","/");
+        var dtFinal   = stringToDate(dataFinal,"dd/MM/yyyy","/");
+
+        return dtFinal >= dtInicial;
+    }
+    // ]]>
+	           
+
+   
+    function stringToDate(_date,_format,_delimiter)
+    {
+       var formatLowerCase=_format.toLowerCase();
+       var formatItems=formatLowerCase.split(_delimiter);
+       var dateItems=_date.split(_delimiter);
+       var monthIndex=formatItems.indexOf("mm");
+       var dayIndex=formatItems.indexOf("dd");
+       var yearIndex=formatItems.indexOf("yyyy");
+       var month=parseInt(dateItems[monthIndex]);
+       month-=1;
+       var formatedDate = new Date(dateItems[yearIndex],month,dateItems[dayIndex]);
+       return formatedDate;
+    }
+
+	
+
+	
+</script>
+<script src="./SiteHorus_files/functions.js" type="text/javascript"></script>
+<script src="./SiteHorus_files/bloqueio_f5.js" type="text/javascript"></script><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = ".maskMonetario";
+	try {
+		selector = eval(".maskMonetario");
+	} catch (e) {}
+	jQuery(selector).maskMoney({symbol:'',decimal:',',thousands:'.'});
+ });
+//]]></script><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = ".maskMonetario2";
+	try {
+		selector = eval(".maskMonetario2");
+	} catch (e) {}
+	jQuery(selector).maskMoney({symbol:'',decimal:',',precision:5, thousands:'.'});
+ });
+//]]></script><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = ".maskMonetario3";
+	try {
+		selector = eval(".maskMonetario3");
+	} catch (e) {}
+	jQuery(selector).maskMoney({symbol:'',decimal:',',precision:4, thousands:'.'});
+ });
+//]]></script><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = ".maskCep";
+	try {
+		selector = eval(".maskCep");
+	} catch (e) {}
+	jQuery(selector).mask('99999-999');
+ });
+//]]></script><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = ".maskInt";
+	try {
+		selector = eval(".maskInt");
+	} catch (e) {}
+	jQuery(selector).mask('99999999999');
+ });
+//]]></script><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = ".maskFoneCompleto";
+	try {
+		selector = eval(".maskFoneCompleto");
+	} catch (e) {}
+	jQuery(selector).mask('(99) 9999-9999?9');
+ });
+//]]></script><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = ".maskFone";
+	try {
+		selector = eval(".maskFone");
+	} catch (e) {}
+	jQuery(selector).mask('9999-9999?9');
+ });
+//]]></script><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = ".maskCnpj";
+	try {
+		selector = eval(".maskCnpj");
+	} catch (e) {}
+	jQuery(selector).mask('99.999.999/9999-99');
+ });
+//]]></script><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = ".maskInscricaoEstadual";
+	try {
+		selector = eval(".maskInscricaoEstadual");
+	} catch (e) {}
+	jQuery(selector).mask('99.999.999/999-99');
+ });
+//]]></script><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = ".maskCpf";
+	try {
+		selector = eval(".maskCpf");
+	} catch (e) {}
+	jQuery(selector).mask('999.999.999-99');
+ });
+//]]></script><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = ".campotxt";
+	try {
+		selector = eval(".campotxt");
+	} catch (e) {}
+	jQuery(selector).keyup( campotxt_keyup );
+ });
+//]]></script></head><body onload="checkNext();"><span id="j_id18"><script type="text/javascript">//<![CDATA[
+ {
+	var selector = ".campotxt";
+	try {
+		selector = eval(".campotxt");
+	} catch (e) {}
+	jQuery(selector).keyup( campotxt_keyup );
+}
+//]]></script></span><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = ".camponumeric";
+	try {
+		selector = eval(".camponumeric");
+	} catch (e) {}
+	jQuery(selector).numeric();
+ });
+//]]></script><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = ".maskData";
+	try {
+		selector = eval(".maskData");
+	} catch (e) {}
+	jQuery(selector).mask('99/99/9999',{placeholder:' '});
+ });
+//]]></script><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = ".maskDataMesAno";
+	try {
+		selector = eval(".maskDataMesAno");
+	} catch (e) {}
+	jQuery(selector).mask('99/9999',{placeholder:' '});
+ });
+//]]></script><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = ".maskCNS";
+	try {
+		selector = eval(".maskCNS");
+	} catch (e) {}
+	jQuery(selector).mask('999 9999 9999 9999');
+ });
+//]]></script>
+<link rel="shortcut icon" href="https://horus.saude.gov.br/horus/favicon.ico">
+<link rel="icon" type="image/gif" href="https://horus.saude.gov.br/horus/animated_favicon1.gif">
+
+
+
+
+
+
+<div id="master">
+<div id="barraSuperior">
+<div class="esquerda"></div>
+<div class="centro"></div>
+<div class="direita"></div>
+</div>
+
+ 
+<div id="topo"><span class="n_sistema">HÓRUS </span> <span class="d_sistema">Sistema Nacional de Gestão da Assistência Farmacêutica </span></div>
+
+ 
+<div id="corpo_menuhorizontal">
+<form id="j_id29:formNavegacao" name="j_id29:formNavegacao" method="post" action="https://horus.saude.gov.br/horus/paginas/dispensacao/dispensacao.jsf" enctype="application/x-www-form-urlencoded">
+<input type="hidden" name="j_id29:formNavegacao" value="j_id29:formNavegacao">
+
+	<table id="navegacao" width="100%" border="0">
+		<tbody><tr>
+				<td>Operador:PRISCILA PORTELA FERREIRA</td>
+				<td>Perfil:Gestor Municipal - I</td>
+				<td style="text-align: right"><img src="./SiteHorus_files/ico_ajuda_navega.gif" border="0" style="vertical-align: middle;">
+<script type="text/javascript" src="./SiteHorus_files/com_sun_faces_sunjsf.js.jsf"></script>
+<a href="https://horus.saude.gov.br/horus/paginas/dispensacao/dispensacao.jsf#" onclick="if(typeof jsfcljs == &#39;function&#39;){jsfcljs(document.getElementById(&#39;j_id29:formNavegacao&#39;),{&#39;j_id29:formNavegacao:j_id37&#39;:&#39;j_id29:formNavegacao:j_id37&#39;},&#39;&#39;);}return false">Ajuda</a> |    <img src="./SiteHorus_files/ico_sair_navega.gif" border="0" style="vertical-align: middle;"><a href="https://horus.saude.gov.br/horus/paginas/dispensacao/dispensacao.jsf#" onclick="if(typeof jsfcljs == &#39;function&#39;){jsfcljs(document.getElementById(&#39;j_id29:formNavegacao&#39;),{&#39;j_id29:formNavegacao:j_id39&#39;:&#39;j_id29:formNavegacao:j_id39&#39;},&#39;&#39;);}return false">Sair</a> |Versão:7.0.30-RC09 - 2026.01.06 1144</td>
+		</tr>
+		<tr>
+				<td colspan="3">Estabelecimentos de Saúde: CAF ACEGUÁ</td>
+		</tr>
+		
+	</tbody></table><input type="hidden" name="javax.faces.ViewState" id="javax.faces.ViewState" value="j_id5" autocomplete="off">
+</form>
+	
+	
+
+	<div id="menu">
+<form id="j_id29:j_id48" name="j_id29:j_id48" method="post" action="https://horus.saude.gov.br/horus/paginas/dispensacao/dispensacao.jsf" enctype="application/x-www-form-urlencoded">
+<input type="hidden" name="j_id29:j_id48" value="j_id29:j_id48">
+<table border="0" cellpadding="0" cellspacing="0" class="rich-toolbar " id="j_id29:j_id48:mainMenu" width="100%"><tbody><tr valign="middle"><td class="rich-toolbar-item "><div class="rich-ddmenu-label rich-ddmenu-label-unselect  " id="j_id29:j_id48:menuDrop_1"><div class="rich-label-text-decor" id="j_id29:j_id48:menuDrop_1_span">Cadastro</div><div style="margin: 0px; padding: 0px; border: 0px; position: absolute; z-index: 100;"><div id="j_id29:j_id48:menuDrop_1_menu" class="rich-menu-list-border" style="display: none; z-index: 2;"><div class="rich-menu-list-bg"><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_2" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_2:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_2:anchor">Departamento</span></div><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_3" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_3:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_3:anchor">Estabelecimento de Saúde</span></div><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_4" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_4:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_4:anchor">Farmacêutico</span></div><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_5" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_5:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_5:anchor">Grade de Distribuição</span></div><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_6" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_6:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_6:anchor">Localização Física</span></div><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_7" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_7:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_7:anchor">Origem Receita</span></div><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_8" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_8:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_8:anchor">Recurso Financeiro</span></div><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_9" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_9:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_9:anchor">Subgrupo Origem Receita</span></div><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_10" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_10:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_10:anchor">Usuário SUS</span></div><div class="rich-menu-list-strut"><div class="rich-menu-list-strut" style="">&nbsp;</div></div></div></div><script id="j_id29:j_id48:menuDrop_1_menu_script" type="text/javascript">new RichFaces.Menu.Layer('j_id29:j_id48:menuDrop_1_menu',{'delay':50,'hideDelay':800} ).asDropDown('j_id29:j_id48:menuDrop_1').addItems([['j_id29:j_id48:menuItem_2'] ,['j_id29:j_id48:menuItem_3'] ,['j_id29:j_id48:menuItem_4'] ,['j_id29:j_id48:menuItem_5'] ,['j_id29:j_id48:menuItem_6'] ,['j_id29:j_id48:menuItem_7'] ,['j_id29:j_id48:menuItem_8'] ,['j_id29:j_id48:menuItem_9'] ,['j_id29:j_id48:menuItem_10'] ] );</script></div></div></td><td class="rich-toolbar-item "><div class="rich-ddmenu-label rich-ddmenu-label-unselect  " id="j_id29:j_id48:menuDrop_11"><div class="rich-label-text-decor" id="j_id29:j_id48:menuDrop_11_span">Entrada</div><div style="margin: 0px; padding: 0px; border: 0px; position: absolute; z-index: 100;"><div id="j_id29:j_id48:menuDrop_11_menu" class="rich-menu-list-border" style="display: none; z-index: 2;"><div class="rich-menu-list-bg"><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_12" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_12:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_12:anchor">Ajuste de Lote</span></div><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_13" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_13:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_13:anchor">Empenho</span></div><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_14" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_14:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_14:anchor">Entrada de Produto</span></div><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_15" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_15:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_15:anchor">Transferência</span></div><div class="rich-menu-list-strut"><div class="rich-menu-list-strut" style="">&nbsp;</div></div></div></div><script id="j_id29:j_id48:menuDrop_11_menu_script" type="text/javascript">new RichFaces.Menu.Layer('j_id29:j_id48:menuDrop_11_menu',{'delay':50,'hideDelay':800} ).asDropDown('j_id29:j_id48:menuDrop_11').addItems([['j_id29:j_id48:menuItem_12'] ,['j_id29:j_id48:menuItem_13'] ,['j_id29:j_id48:menuItem_14'] ,['j_id29:j_id48:menuItem_15'] ] );</script></div></div></td><td class="rich-toolbar-item "><div class="rich-ddmenu-label rich-ddmenu-label-unselect" id="j_id29:j_id48:menuDrop_16"><div class="rich-label-text-decor" id="j_id29:j_id48:menuDrop_16_span">Movimentação</div><div style="margin: 0px; padding: 0px; border: 0px; position: absolute; z-index: 100;"><div id="j_id29:j_id48:menuDrop_16_menu" class="rich-menu-list-border" style="display: none; z-index: 2;"><div class="rich-menu-list-bg"><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_17" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_17:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_17:anchor">Atender Requisição</span></div><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_18" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_18:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_18:anchor">Distribuição Sem Requisição</span></div><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_19" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_19:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_19:anchor">Receber Distribuição</span></div><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_20" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_20:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_20:anchor">Requisição</span></div><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_21" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_21:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_21:anchor">Requisição Entre Estabelecimento</span></div><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_22" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_22:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_22:anchor">Saída Diversa</span></div><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_23" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_23:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_23:anchor">Saída para Departamento</span></div><div class="rich-menu-list-strut"><div class="rich-menu-list-strut" style="">&nbsp;</div></div></div></div><script id="j_id29:j_id48:menuDrop_16_menu_script" type="text/javascript">new RichFaces.Menu.Layer('j_id29:j_id48:menuDrop_16_menu',{'delay':50,'hideDelay':800} ).asDropDown('j_id29:j_id48:menuDrop_16').addItems([['j_id29:j_id48:menuItem_17'] ,['j_id29:j_id48:menuItem_18'] ,['j_id29:j_id48:menuItem_19'] ,['j_id29:j_id48:menuItem_20'] ,['j_id29:j_id48:menuItem_21'] ,['j_id29:j_id48:menuItem_22'] ,['j_id29:j_id48:menuItem_23'] ] );</script></div></div></td><td class="rich-toolbar-item "><div class="rich-ddmenu-label rich-ddmenu-label-unselect  " id="j_id29:j_id48:menuDrop_24"><div class="rich-label-text-decor" id="j_id29:j_id48:menuDrop_24_span">Dispensação</div><div style="margin: 0px; padding: 0px; border: 0px; position: absolute; z-index: 100;"><div id="j_id29:j_id48:menuDrop_24_menu" class="rich-menu-list-border" style="display: none; z-index: 2;"><div class="rich-menu-list-bg"><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_25" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_25:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_25:anchor">Dispensação</span></div><div class="rich-menu-list-strut"><div class="rich-menu-list-strut" style="">&nbsp;</div></div></div></div><script id="j_id29:j_id48:menuDrop_24_menu_script" type="text/javascript">new RichFaces.Menu.Layer('j_id29:j_id48:menuDrop_24_menu',{'delay':50,'hideDelay':800} ).asDropDown('j_id29:j_id48:menuDrop_24').addItems([['j_id29:j_id48:menuItem_25'] ] );</script></div></div></td><td class="rich-toolbar-item "><div class="rich-ddmenu-label rich-ddmenu-label-unselect  " id="j_id29:j_id48:menuDrop_26"><div class="rich-label-text-decor" id="j_id29:j_id48:menuDrop_26_span">URM</div><div style="margin: 0px; padding: 0px; border: 0px; position: absolute; z-index: 100;"><div id="j_id29:j_id48:menuDrop_26_menu" class="rich-menu-list-border" style="display: none; z-index: 2;"><div class="rich-menu-list-bg"><div class="rich-menu-item rich-menu-item-enabled" id="j_id29:j_id48:menuItem_27" onclick="RichFaces.Menu.submitForm(event,this)"><span class="rich-menu-item-icon  " id="j_id29:j_id48:menuItem_27:icon"><img alt="" height="16" src="./SiteHorus_files/spacer.gif.jsf" width="16"></span><span class="rich-menu-item-label" id="j_id29:j_id48:menuItem_27:anchor">Orientações</span></div><div class="rich-menu-list-strut"><div class="rich-menu-list-strut" style="">&nbsp;</div></div></div></div><script id="j_id29:j_id48:menuDrop_26_menu_script" type="text/javascript">new RichFaces.Menu.Layer('j_id29:j_id48:menuDrop_26_menu',{'delay':50,'hideDelay':800} ).asDropDown('j_id29:j_id48:menuDrop_26').addItems([['j_id29:j_id48:menuItem_27'] ] );</script></div></div></td><td style="width:100%"></td></tr></tbody></table><input type="hidden" name="javax.faces.ViewState" id="javax.faces.ViewState" value="j_id5" autocomplete="off">
+</form></div>
+<div id="conteudo">
+<h1>Dispensação</h1>
+<center><span id="globalErrors"><table id="j_id263" cellpadding="0" cellspacing="0" class="rich-messages mensagem" style="display: none; "><tbody><tr><td></td></tr></tbody></table></span></center>
+				<script>
+				//<![CDATA[
+					function calculaPosologia(solicitado, diaTratamento, posologia) {
+						posologia.value = solicitado.value / diaTratamento.value;
+						var separador = '.';
+						var indice = 0;
+						var temp = '';
+
+						if(posologia.value.indexOf('.', 0) != -1) { 
+							while (posologia.value[indice] != separador) {
+								temp += posologia.value[indice];
+								indice++;
+							}
+							temp +=	(',' + posologia.value[indice + 1]);
+							posologia.value = temp;
+						}
+					}
+
+					function cadastroPaciente() {
+				       var url_paciente = "/horus/paginas/paciente/paciente.jsf?hideHeader=true";
+				       window.open(url_paciente,'j2093','toolbar=no, location=no, directories=no, status=no, scrollbars=yes, menubar=no, resizable=yes, width=800, height=560, top=0, left=0')
+				       return false;
+					}
+
+					function verificaAtualizacaoCNS(){
+						
+						var cadastroDesatualizado = document.getElementById('dispensacaoForm:idCadAtualizado').value;
+						if(cadastroDesatualizado == 'true'){
+							alert('Atenção! Atualizar os dados do CNS.');
+						}
+					}	
+
+					function somenteNumero(e){
+						
+						 var tecla=(window.event)?event.keyCode:e.which;
+						 //alert(tecla);
+						 if((tecla>47 && tecla<58))
+							 return true;
+						 else{
+						 	if (tecla==8 || tecla==0 || tecla==44)
+						 	 	return true;
+						 	else  
+							 	return false;
+						 }
+					}
+
+					function somenteNumeroSemVirgula(e){
+						
+						 var tecla=(window.event)?event.keyCode:e.which;
+
+						 //alert(tecla);
+						 if((tecla>47 && tecla<58))
+							 return true;
+						 else{
+						 	if (tecla==8 || tecla==0)
+						 	 	return true;
+						 	else  
+							 	return false;
+						 }
+					}
+
+				//]]>
+				</script>
+<form id="dispensacaoForm" name="dispensacaoForm" method="post" action="https://horus.saude.gov.br/horus/paginas/dispensacao/dispensacao.jsf" enctype="application/x-www-form-urlencoded">
+<input type="hidden" name="dispensacaoForm" value="dispensacaoForm">
+<input id="dispensacaoForm:idCadAtualizado" type="hidden" name="dispensacaoForm:idCadAtualizado" value="false">
+					<ul class="colform">
+						<li class="col_148 campodesc">CNS
+						</li>
+						<li><table>
+<tbody>
+<tr>
+<td><input id="dispensacaoForm:coPaciente" type="hidden" name="dispensacaoForm:coPaciente" value="12421045"><input id="dispensacaoForm:nuCartaoSus" type="text" name="dispensacaoForm:nuCartaoSus" value="700005452554607" class="campotxt" maxlength="16" onblur="A4J.AJAX.Submit(&#39;dispensacaoForm&#39;,event,{&#39;similarityGroupingId&#39;:&#39;dispensacaoForm:j_id277&#39;,&#39;control&#39;:this,&#39;containerId&#39;:&#39;dispensacaoForm:regionCoPaciente&#39;,&#39;parameters&#39;:{&#39;ajaxSingle&#39;:&#39;dispensacaoForm:nuCartaoSus&#39;,&#39;dispensacaoForm:j_id277&#39;:&#39;dispensacaoForm:j_id277&#39;} } )" size="17" autocomplete="off"></td>
+<td><a href="https://horus.saude.gov.br/horus/paginas/dispensacao/dispensacao.jsf" onclick="document.getElementById(&#39;dispensacaoForm:coPacienteSuggest&#39;).component.callSuggestion(true); return false;"><img id="dispensacaoForm:fireCoPacienteSuggest" src="./SiteHorus_files/ico_nconsulta.gif" alt="" style="vertical-align:middle"></a></td>
+<td><div id="dispensacaoForm:coPacienteSuggest" class="rich-sb-common-container  " style="display:none; z-index: 201;width:400px;height:200px;;;"><div class="rich-sb-ext-decor-1"><div class="rich-sb-ext-decor-2" style=";; border-width: null  null  null  null ;"><table border="0" cellpadding="0" cellspacing="1" class="rich-sb-ext-decor-3"><tbody><tr><td><div class="_suggestion_size_ rich-sb-overflow" style="width:396px;height:196px;"><table width="100%" id="dispensacaoForm:coPacienteSuggest:suggest" border="0"><tbody><tr style="display:none;"><td></td></tr></tbody></table></div></td></tr></tbody></table></div></div><div class="rich-sb-shadow" style="opacity:0.1; filter:alpha(opacity=10);top: 4px; left: 4px; "></div></div><div id="dispensacaoForm:coPacienteSuggest_script" style="display:none;"><script type="text/javascript">Richfaces.onAvailable('dispensacaoForm:nuCartaoSus', function() { new RichFaces.Suggestion('dispensacaoForm','dispensacaoForm:nuCartaoSus','dispensacaoForm:coPacienteSuggest',{'similarityGroupingId':'dispensacaoForm:coPacienteSuggest','onselect':function(suggestion,event){if (setAutocompleterKeyField(document.getElementById('dispensacaoForm:coPaciente'), document.getElementById('dispensacaoForm:coPacienteSuggest').component,'coSeqPaciente')) { setAutocompleterKeyField(document.getElementById('dispensacaoForm:noNome'), document.getElementById('dispensacaoForm:coPacienteSuggest').component,'noNome'); setAutocompleterKeyField(document.getElementById('dispensacaoForm:dtNascimento'), document.getElementById('dispensacaoForm:coPacienteSuggest').component,'dtNascimentoFormated'); setAutocompleterKeyField(document.getElementById('dispensacaoForm:dsObservacao'), document.getElementById('dispensacaoForm:coPacienteSuggest').component,'dsObservacao');}},'implicitEventsQueue':'dispensacaoForm:coPacienteSuggest','width':'400','usingSuggestObjects':true,'containerId':'dispensacaoForm:regionCoPaciente','parameters':{'ajaxSingle':'dispensacaoForm:coPacienteSuggest','dispensacaoForm:coPacienteSuggest':'dispensacaoForm:coPacienteSuggest'} ,'frequency':999.0,'minChars':'3'} );
+});</script></div><iframe src="./SiteHorus_files/spacer.gif.html" id="dispensacaoForm:coPacienteSuggest_iframe" style="position:absolute;display:none;z-index:200;"></iframe><input type="hidden" autocomplete="off" id="dispensacaoForm:coPacienteSuggest_selection" name="dispensacaoForm:coPacienteSuggest_selection"></td>
+<td><span id="dispensacaoForm:regionCoPaciente:status"><span id="dispensacaoForm:regionCoPaciente:status.start" style="display: none"><img src="./SiteHorus_files/ico_loading.gif"></span><span id="dispensacaoForm:regionCoPaciente:status.stop"></span></span></td>
+</tr>
+</tbody>
+</table>
+
+						</li>
+					</ul>
+					<ul class="colform">
+						<li class="col_148 campodesc">Usuário SUS
+						</li>
+						<li><table>
+<tbody>
+<tr>
+<td><input id="dispensacaoForm:noNome" type="text" name="dispensacaoForm:noNome" value="JOAO TESTE" class="campotxt" maxlength="100" onblur="A4J.AJAX.Submit(&#39;dispensacaoForm&#39;,event,{&#39;similarityGroupingId&#39;:&#39;dispensacaoForm:j_id292&#39;,&#39;control&#39;:this,&#39;containerId&#39;:&#39;dispensacaoForm:regionNoNome&#39;,&#39;parameters&#39;:{&#39;dispensacaoForm:j_id292&#39;:&#39;dispensacaoForm:j_id292&#39;,&#39;ajaxSingle&#39;:&#39;dispensacaoForm:noNome&#39;} } )" onkeypress="return Onlychars(event);" size="50" autocomplete="off"></td>
+<td><a href="https://horus.saude.gov.br/horus/paginas/dispensacao/dispensacao.jsf" onclick="if (document.getElementById(&#39;dispensacaoForm:noNome&#39;).value.length &gt;= 4) { document.getElementById(&#39;dispensacaoForm:noPacienteSuggest&#39;).component.callSuggestion(true); return false; } else {errorDialogMinimoQuatroCaracteres(); return false;}"><img id="dispensacaoForm:fireNoPacienteSuggest" src="./SiteHorus_files/ico_nconsulta.gif" alt="" style="vertical-align:middle"></a>
+										<span style="color: red">* </span></td>
+<td><div id="dispensacaoForm:noPacienteSuggest" class="rich-sb-common-container  " style="display:none; z-index: 201;width:500px;height:200px;;;"><div class="rich-sb-ext-decor-1"><div class="rich-sb-ext-decor-2" style=";; border-width: null  null  null  null ;"><table border="0" cellpadding="0" cellspacing="1" class="rich-sb-ext-decor-3"><tbody><tr><td><div class="_suggestion_size_ rich-sb-overflow" style="width:496px;height:196px;"><table width="100%" id="dispensacaoForm:noPacienteSuggest:suggest" border="0"><tbody><tr style="display:none;"><td></td></tr></tbody></table></div></td></tr></tbody></table></div></div><div class="rich-sb-shadow" style="opacity:0.1; filter:alpha(opacity=10);top: 4px; left: 4px; "></div></div><div id="dispensacaoForm:noPacienteSuggest_script" style="display:none;"><script type="text/javascript">Richfaces.onAvailable('dispensacaoForm:noNome', function() { new RichFaces.Suggestion('dispensacaoForm','dispensacaoForm:noNome','dispensacaoForm:noPacienteSuggest',{'similarityGroupingId':'dispensacaoForm:noPacienteSuggest','onselect':function(suggestion,event){if (setAutocompleterKeyField(document.getElementById('dispensacaoForm:coPaciente'), document.getElementById('dispensacaoForm:noPacienteSuggest').component,'coSeqPaciente')) { setAutocompleterKeyField(document.getElementById('dispensacaoForm:nuCartaoSus'), document.getElementById('dispensacaoForm:noPacienteSuggest').component,'nuCartaoSus'); setAutocompleterKeyField(document.getElementById('dispensacaoForm:dtNascimento'), document.getElementById('dispensacaoForm:noPacienteSuggest').component,'dtNascimentoFormated');  setAutocompleterKeyField(document.getElementById('dispensacaoForm:dsObservacao'), document.getElementById('dispensacaoForm:noPacienteSuggest').component,'dsObservacao');}},'implicitEventsQueue':'dispensacaoForm:noPacienteSuggest','width':'500','usingSuggestObjects':true,'containerId':'dispensacaoForm:regionNoNome','parameters':{'dispensacaoForm:noPacienteSuggest':'dispensacaoForm:noPacienteSuggest','ajaxSingle':'dispensacaoForm:noPacienteSuggest'} ,'frequency':999.0,'minChars':'4'} );
+});</script></div><iframe src="./SiteHorus_files/spacer(2).gif.html" id="dispensacaoForm:noPacienteSuggest_iframe" style="position:absolute;display:none;z-index:200;"></iframe><input type="hidden" autocomplete="off" id="dispensacaoForm:noPacienteSuggest_selection" name="dispensacaoForm:noPacienteSuggest_selection"></td>
+<td><span id="dispensacaoForm:regionNoNome:status"><span id="dispensacaoForm:regionNoNome:status.start" style="display: none"><img src="./SiteHorus_files/ico_loading.gif"></span><span id="dispensacaoForm:regionNoNome:status.stop"></span></span></td>
+</tr>
+</tbody>
+</table>
+
+						</li>
+						<li class="col_100 campodesc">Data Nascimento
+						</li>
+						<li><input id="dispensacaoForm:dtNascimento" type="text" name="dispensacaoForm:dtNascimento" class="campotxt" size="20" style="width:80px" disabled="disabled" readonly="readonly">	
+						</li>
+					</ul>
+					<ul class="colform">
+						<li class="col_150 campodesc">Observação
+						</li>
+						<li><textarea id="dispensacaoForm:dsObservacao" name="dispensacaoForm:dsObservacao" cols="90" rows="2">teste</textarea>
+						</li>
+					</ul>
+					<ul class="colform">
+						<li class="col_150 campodesc">Origem Receita
+						</li>
+						<li><select id="dispensacaoForm:coSeqOrigemReceita" name="dispensacaoForm:coSeqOrigemReceita" size="1" onchange="document.getElementById(&#39;loadingBox&#39;).component.show();;A4J.AJAX.Submit(&#39;dispensacaoForm&#39;,event,{&#39;similarityGroupingId&#39;:&#39;dispensacaoForm:j_id316&#39;,&#39;control&#39;:this,&#39;oncomplete&#39;:function(request,event,data){document.getElementById(&#39;loadingBox&#39;).component.hide();},&#39;parameters&#39;:{&#39;dispensacaoForm:j_id316&#39;:&#39;dispensacaoForm:j_id316&#39;,&#39;ajaxSingle&#39;:&#39;dispensacaoForm:coSeqOrigemReceita&#39;} } )" style="width:319px">	<option value="">:: Selecione ::</option>
+	<option value="31947">MÉDICOS ESPECIALISTAS</option>
+	<option value="31948">MÉDICOS ESPECIALISTAS (HOSPITAIS)</option>
+	<option value="31946">POSTO DE SAÚDE DA COLÔNIA NOVA</option>
+	<option value="31945" selected="selected">UBS</option>
+</select> <span style="color: red">* </span>
+						</li>
+					</ul>
+					<ul class="colform">
+						<li class="col_150 campodesc">Subgrupo Origem Receita
+						</li>
+						<li><select id="dispensacaoForm:coSubgrupoOrigemReceita" name="dispensacaoForm:coSubgrupoOrigemReceita" size="1" onchange="A4J.AJAX.Submit(&#39;dispensacaoForm&#39;,event,{&#39;similarityGroupingId&#39;:&#39;dispensacaoForm:j_id323&#39;,&#39;control&#39;:this,&#39;parameters&#39;:{&#39;ajaxSingle&#39;:&#39;dispensacaoForm:coSubgrupoOrigemReceita&#39;,&#39;dispensacaoForm:j_id323&#39;:&#39;dispensacaoForm:j_id323&#39;} } )" style="width:319px">	<option value="">:: Selecione ::</option>
+	<option value="53041" selected="selected">MÉDICOS DA REDE DE SAÚDE</option>
+</select> <span style="color: red">* </span>
+						</li>
+					</ul><span id="dispensacaoForm:principal"> 
+							<ul class="colform">
+								<li class="col_148 campodesc">Médico
+								</li>
+								<li><table>
+<tbody>
+<tr>
+<td><input id="dispensacaoForm:coCrmMedico" type="hidden" name="dispensacaoForm:coCrmMedico" value="1332064"><input id="dispensacaoForm:medico" type="text" name="dispensacaoForm:medico" value="TESTE" class="campotxt" maxlength="100" size="50" autocomplete="off"></td>
+<td><a href="https://horus.saude.gov.br/horus/paginas/dispensacao/dispensacao.jsf" onclick="document.getElementById(&#39;dispensacaoForm:noMedicoSuggest&#39;).component.callSuggestion(true); return false;"><img id="dispensacaoForm:fireNoMedicoSuggest" src="./SiteHorus_files/ico_nconsulta.gif" alt="" style="vertical-align:middle"></a></td>
+<td><div id="dispensacaoForm:noMedicoSuggest" class="rich-sb-common-container  " style="display:none; z-index: 201;width:400px;height:200px;;;"><div class="rich-sb-ext-decor-1"><div class="rich-sb-ext-decor-2" style=";; border-width: null  null  null  null ;"><table border="0" cellpadding="0" cellspacing="1" class="rich-sb-ext-decor-3"><tbody><tr><td><div class="_suggestion_size_ rich-sb-overflow" style="width:396px;height:196px;"><table width="100%" id="dispensacaoForm:noMedicoSuggest:suggest" border="0"><tbody><tr style="display:none;"><td></td></tr></tbody></table></div></td></tr></tbody></table></div></div><div class="rich-sb-shadow" style="opacity:0.1; filter:alpha(opacity=10);top: 4px; left: 4px; "></div></div><div id="dispensacaoForm:noMedicoSuggest_script" style="display:none;"><script type="text/javascript">Richfaces.onAvailable('dispensacaoForm:medico', function() { new RichFaces.Suggestion('dispensacaoForm','dispensacaoForm:medico','dispensacaoForm:noMedicoSuggest',{'similarityGroupingId':'dispensacaoForm:noMedicoSuggest','onselect':function(suggestion,event){setAutocompleterKeyField(document.getElementById('dispensacaoForm:coCrmMedico'), document.getElementById('dispensacaoForm:noMedicoSuggest').component,'coSeqCrm');},'implicitEventsQueue':'dispensacaoForm:noMedicoSuggest','width':'400','usingSuggestObjects':true,'containerId':'dispensacaoForm:regionCoCrmMedico','parameters':{'dispensacaoForm:noMedicoSuggest':'dispensacaoForm:noMedicoSuggest','ajaxSingle':'dispensacaoForm:noMedicoSuggest'} ,'frequency':999.0,'minChars':'3'} );
+});</script></div><iframe src="./SiteHorus_files/spacer(3).gif.html" id="dispensacaoForm:noMedicoSuggest_iframe" style="position:absolute;display:none;z-index:200;"></iframe><input type="hidden" autocomplete="off" id="dispensacaoForm:noMedicoSuggest_selection" name="dispensacaoForm:noMedicoSuggest_selection"></td>
+<td><span id="dispensacaoForm:regionCoCrmMedico:status"><span id="dispensacaoForm:regionCoCrmMedico:status.start" style="display: none"><img src="./SiteHorus_files/ico_loading.gif"></span><span id="dispensacaoForm:regionCoCrmMedico:status.stop"></span></span></td>
+</tr>
+</tbody>
+</table>
+
+								</li>
+							</ul></span>
+
+					<ul class="colform">
+						<li class="col_150 campodesc">Outro Tipo de Prescritor
+						</li>
+						<li class="col_350"><input id="dispensacaoForm:noPrescritor" type="text" name="dispensacaoForm:noPrescritor" value="TESTE" class="campotxt" maxlength="100" onkeypress="return Onlychars(event);" size="50">
+						</li>
+						<li class="col_80 campodesc">Nº Conselho
+						</li>
+						<li class="col_100"><input id="dispensacaoForm:nuConselho" type="text" name="dispensacaoForm:nuConselho" value="" class="campotxt" maxlength="20" onkeyup="campotxt_keyup(event);" size="20">
+						</li>
+					</ul>												
+
+					<ul class="colform">
+						<li class="col_150 campodesc">N° Notificação
+						</li><span id="dispensacaoForm:nuReceitaPanel">
+							<li><input id="dispensacaoForm:nuReceita" type="text" name="dispensacaoForm:nuReceita" value="" class="campotxt" maxlength="20" onkeypress="return Onlynumbers(event);" size="20">
+							</li>
+						    <li>
+							</li></span>
+					</ul>												
+					<ul class="colform">
+						<li class="col_150 campodesc">Data da Receita
+						</li>
+						<li><span id="dispensacaoForm:dtReceitaPopup"><input class="rich-calendar-input campotxt maskData" id="dispensacaoForm:dtReceitaInputDate" name="dispensacaoForm:dtReceitaInputDate" size="8" style="vertical-align: middle; " type="text" value="08/01/2026"><img alt="" class="rich-calendar-button " id="dispensacaoForm:dtReceitaPopupButton" style="vertical-align: middle" src="./SiteHorus_files/eAH7cW0fw6znAA8XBA4_.jsf"><input autocomplete="off" id="dispensacaoForm:dtReceitaInputCurrentDate" name="dispensacaoForm:dtReceitaInputCurrentDate" style="display:none" type="hidden" value="01/2026"><style type="text/css">.dispensacaoForm_dtReceitaDayCell{width:24px;height:22px;}</style></span><div id="dispensacaoForm:dtReceitaIFrame" style="display: none;"></div><table id="dispensacaoForm:dtReceita" border="0" cellpadding="0" cellspacing="0" class="rich-calendar-exterior rich-calendar-popup undefined" style="display:none; position:absolute;z-index: 3; width:200px" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.skipEventOnCollapse=true;"><tbody><tr><td class="rich-calendar-header" colspan="8" id="dispensacaoForm:dtReceitaHeader"></td></tr><tr id="dispensacaoForm:dtReceitaWeekDay"><td class="rich-calendar-days"><br></td><td class="rich-calendar-days rich-calendar-weekends" id="dispensacaoForm:dtReceitaWeekDayCell0">Dom</td><td class="rich-calendar-days" id="dispensacaoForm:dtReceitaWeekDayCell1">Seg</td><td class="rich-calendar-days" id="dispensacaoForm:dtReceitaWeekDayCell2">Ter</td><td class="rich-calendar-days" id="dispensacaoForm:dtReceitaWeekDayCell3">Qua</td><td class="rich-calendar-days" id="dispensacaoForm:dtReceitaWeekDayCell4">Qui</td><td class="rich-calendar-days" id="dispensacaoForm:dtReceitaWeekDayCell5">Sex</td><td class="rich-calendar-days rich-calendar-weekends rich-right-cell" id="dispensacaoForm:dtReceitaWeekDayCell6">Sáb</td></tr>
+<tr id="dispensacaoForm:dtReceitaWeekNum1"><td class="rich-calendar-week " id="dispensacaoForm:dtReceitaWeekNumCell1">1</td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell rich-calendar-holly" id="dispensacaoForm:dtReceitaDayCell0" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell1" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell2" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell3" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell4" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell5" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell rich-calendar-holly rich-right-cell" id="dispensacaoForm:dtReceitaDayCell6" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td></tr><tr id="dispensacaoForm:dtReceitaWeekNum2"><td class="rich-calendar-week " id="dispensacaoForm:dtReceitaWeekNumCell2">2</td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell rich-calendar-holly" id="dispensacaoForm:dtReceitaDayCell7" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell8" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell9" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell10" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell11" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell12" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell rich-calendar-holly rich-right-cell" id="dispensacaoForm:dtReceitaDayCell13" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td></tr><tr id="dispensacaoForm:dtReceitaWeekNum3"><td class="rich-calendar-week " id="dispensacaoForm:dtReceitaWeekNumCell3">3</td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell rich-calendar-holly" id="dispensacaoForm:dtReceitaDayCell14" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell15" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell16" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell17" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell18" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell19" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell rich-calendar-holly rich-right-cell" id="dispensacaoForm:dtReceitaDayCell20" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td></tr><tr id="dispensacaoForm:dtReceitaWeekNum4"><td class="rich-calendar-week " id="dispensacaoForm:dtReceitaWeekNumCell4">4</td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell rich-calendar-holly" id="dispensacaoForm:dtReceitaDayCell21" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell22" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell23" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell24" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell25" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell26" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell rich-calendar-holly rich-right-cell" id="dispensacaoForm:dtReceitaDayCell27" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td></tr><tr id="dispensacaoForm:dtReceitaWeekNum5"><td class="rich-calendar-week " id="dispensacaoForm:dtReceitaWeekNumCell5">5</td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell rich-calendar-holly" id="dispensacaoForm:dtReceitaDayCell28" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell29" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell30" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell31" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell32" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell33" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="dispensacaoForm_dtReceitaDayCell rich-calendar-cell rich-calendar-holly rich-right-cell" id="dispensacaoForm:dtReceitaDayCell34" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td></tr><tr id="dispensacaoForm:dtReceitaWeekNum6"><td class="rich-calendar-week rich-bottom-cell " id="dispensacaoForm:dtReceitaWeekNumCell6">6</td><td class="rich-bottom-cell dispensacaoForm_dtReceitaDayCell rich-calendar-cell rich-calendar-holly" id="dispensacaoForm:dtReceitaDayCell35" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="rich-bottom-cell dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell36" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="rich-bottom-cell dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell37" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="rich-bottom-cell dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell38" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="rich-bottom-cell dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell39" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="rich-bottom-cell dispensacaoForm_dtReceitaDayCell rich-calendar-cell" id="dispensacaoForm:dtReceitaDayCell40" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td><td class="rich-bottom-cell dispensacaoForm_dtReceitaDayCell rich-calendar-cell rich-calendar-holly rich-right-cell" id="dispensacaoForm:dtReceitaDayCell41" onclick="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnClick(event, this);" onmouseover="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOver(event, this);" onmouseout="$(&#39;dispensacaoForm:dtReceita&#39;).component.eventCellOnMouseOut(event, this);"></td></tr><tr><td class="rich-calendar-footer" colspan="8" id="dispensacaoForm:dtReceitaFooter"></td></tr></tbody></table><div id="dispensacaoForm:dtReceitaScript" style="display: none;"><script type="text/javascript">Richfaces.Calendar.addLocale('pt_BR', {'weekDayLabels':['Domingo','Segunda\x2Dfeira','Terça\x2Dfeira','Quarta\x2Dfeira','Quinta\x2Dfeira','Sexta\x2Dfeira','Sábado'] ,'weekDayLabelsShort':['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'] ,'monthLabels':['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'] ,'monthLabelsShort':['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'] ,'minDaysInFirstWeek':1,'firstWeekDay':0} );
+new Calendar('dispensacaoForm:dtReceita', 
+			"pt_BR",{'datePattern':'dd/MM/yyyy','enableManualInput':true,'currentDate':new Date(2026,0,1),'style':'z\x2Dindex: 3; width:200px','dayCellClass':'dispensacaoForm_dtReceitaDayCell','selectedDate':new Date(2026,0,8,0,0,0),'labels':{'today':'Hoje','clean':'Limpar'} } ,{} ).load();</script></div>
+							<span style="color: red">* </span><span id="dispensacaoForm:dtReceitaId" class="rich-message"><span class="rich-message-label"></span></span>
+						</li>
+					</ul>
+
+				
+				
+					<div class="quebra sp_20"></div>
+					<ul class="colform">
+						<li class="col_150 campodesc">Produtos
+						</li>
+						<li><a id="dispensacaoForm:addItem" href="https://horus.saude.gov.br/horus/paginas/dispensacao/dispensacao.jsf#" onclick="var a=function(){document.getElementById(&#39;loadingBox&#39;).component.show();;A4J.AJAX.Submit(&#39;dispensacaoForm&#39;,event,{&#39;similarityGroupingId&#39;:&#39;dispensacaoForm:j_id369&#39;,&#39;parameters&#39;:{&#39;dispensacaoForm:j_id369&#39;:&#39;dispensacaoForm:j_id369&#39;} } );};var b=function(){if(typeof jsfcljs == &#39;function&#39;){jsfcljs(document.getElementById(&#39;dispensacaoForm&#39;),{&#39;dispensacaoForm:addItem&#39;:&#39;dispensacaoForm:addItem&#39;},&#39;&#39;);}return false};return (a()==false) ? false : b();">
+								<img border="0" src="./SiteHorus_files/ico_adicionar.gif"></a>
+						</li>
+					</ul>
+					<div class="quebra sp"></div><span id="dispensacaoForm:itemPanel" style="padding:0px; margin-left: -3px"><table class="rich-table " id="dispensacaoForm:itens" align="center" border="0" cellpadding="0" cellspacing="0" width="750px"><colgroup span="7"><col width="260"><col width="50"><col width="50"><col width="50"><col width="50"><col width="100"><col width="100"></colgroup><thead class="rich-table-thead"><tr class="rich-table-subheader "><th class="rich-table-subheadercell  " scope="col">Produto<span style="color: red"> *</span></th><th class="rich-table-subheadercell  " scope="col">Qtd.<br>(Dose)<span style="color: red"> *</span></th><th class="rich-table-subheadercell  " scope="col">Frequência<span style="color: red"> *</span></th><th class="rich-table-subheadercell  " scope="col">Duração<br>(Dias)<span style="color: red"> *</span></th><th class="rich-table-subheadercell  " scope="col">Nº dias<br>dispensar<span style="color: red"> *</span></th><th class="rich-table-subheadercell  " scope="col">Não Atender</th><th class="rich-table-subheadercell  " scope="col">Ação</th></tr></thead><tbody id="dispensacaoForm:itens:tb"><tr class="rich-table-row rich-table-firstrow "><td id="dispensacaoForm:itens:0:j_id371" class="rich-table-cell center"><span id="dispensacaoForm:itens:0:itemProduto"><input id="dispensacaoForm:itens:0:item_produto_coSeqProduto" type="hidden" name="dispensacaoForm:itens:0:item_produto_coSeqProduto" value="46451">
+										<div style="width:250px; height:28px;">
+											<div style="float: left"><textarea id="dispensacaoForm:itens:0:item_produto_dsProduto" name="dispensacaoForm:itens:0:item_produto_dsProduto" class="campotxt" cols="50" rows="2" style="font-size: 9px;" disabled="disabled" autocomplete="off">BR0436237-CARISOPRODOL + PARACETAMOL  300+100 MG CÁPSULA </textarea>
+											</div>									
+											<div><a href="https://horus.saude.gov.br/horus/paginas/dispensacao/dispensacao.jsf" onclick="if (document.getElementById(&#39;dispensacaoForm:itens:0:item_produto_dsProduto&#39;).value.length &gt;= 4) { document.getElementById(&#39;dispensacaoForm:itens:0:item_produto_coSeqProdutoSuggest&#39;).component.callSuggestion(true); return false; } else {errorDialogMinimoQuatroCaracteres(); return false;}"><img id="dispensacaoForm:itens:0:fireItem_produto_coSeqProdutoSuggest" src="./SiteHorus_files/ico_nconsulta.gif" alt="" style="vertical-align:middle"></a>
+											</div>
+											<div><a id="dispensacaoForm:itens:0:downloadMonografiaLink" href="https://horus.saude.gov.br/horus/paginas/dispensacao/dispensacao.jsf#" title="Download de Monografia" onclick="if(typeof jsfcljs == &#39;function&#39;){jsfcljs(document.getElementById(&#39;dispensacaoForm&#39;),{&#39;dispensacaoForm:itens:0:downloadMonografiaLink&#39;:&#39;dispensacaoForm:itens:0:downloadMonografiaLink&#39;,&#39;itemIndex&#39;:&#39;0&#39;},&#39;&#39;);}return false"></a>
+											</div>
+										</div><script id="dispensacaoForm:itens:0:j_id385" type="text/javascript">//<![CDATA[
+		updateProduto=function(param1,param2){A4J.AJAX.Submit('dispensacaoForm',null,{'similarityGroupingId':'dispensacaoForm:itens:0:j_id385','containerId':'dispensacaoForm:itens:0:j_id375','parameters':{'dispensacaoForm:itens:0:j_id385':'dispensacaoForm:itens:0:j_id385','param1':param1,'param2':param2} } )};
+		//]]></script><table>
+<tbody>
+<tr>
+<td><div id="dispensacaoForm:itens:0:item_produto_coSeqProdutoSuggest" class="rich-sb-common-container  " style="display:none; z-index: 201;width:400px;height:200px;;;"><div class="rich-sb-ext-decor-1"><div class="rich-sb-ext-decor-2" style=";; border-width: null  null  null  null ;"><table border="0" cellpadding="0" cellspacing="1" class="rich-sb-ext-decor-3"><tbody><tr><td><div class="_suggestion_size_ rich-sb-overflow" style="width:396px;height:196px;"><table width="100%" id="dispensacaoForm:itens:0:item_produto_coSeqProdutoSuggest:suggest" border="0" onblur="A4J.AJAX.Submit(&#39;dispensacaoForm&#39;,event,{&#39;similarityGroupingId&#39;:&#39;dispensacaoForm:itens:0:item_produto_coSeqProdutoSuggest:j_id393&#39;,&#39;containerId&#39;:&#39;dispensacaoForm:itens:0:regionConsultaMedicamento&#39;,&#39;parameters&#39;:{&#39;dispensacaoForm:itens:0:item_produto_coSeqProdutoSuggest:j_id393&#39;:&#39;dispensacaoForm:itens:0:item_produto_coSeqProdutoSuggest:j_id393&#39;} } )"><tbody><tr style="display:none;"><td></td></tr></tbody></table></div></td></tr></tbody></table></div></div><div class="rich-sb-shadow" style="opacity:0.1; filter:alpha(opacity=10);top: 4px; left: 4px; "></div></div><div id="dispensacaoForm:itens:0:item_produto_coSeqProdutoSuggest_script" style="display:none;"><script type="text/javascript">Richfaces.onAvailable('dispensacaoForm:itens:0:item_produto_dsProduto', function() { new RichFaces.Suggestion('dispensacaoForm','dispensacaoForm:itens:0:item_produto_dsProduto','dispensacaoForm:itens:0:item_produto_coSeqProdutoSuggest',{'similarityGroupingId':'dispensacaoForm:itens:0:item_produto_coSeqProdutoSuggest','onselect':function(suggestion,event){setAutocompleterKeyField(                        document.getElementById('dispensacaoForm:itens:0:item_produto_coSeqProduto'),                         document.getElementById('dispensacaoForm:itens:0:item_produto_coSeqProdutoSuggest').component,                        'coSeqProduto');                                                  setAutocompleterKeyField(document.getElementById('dispensacaoForm:itens:0:item_unidadeConsumo'),                         document.getElementById('dispensacaoForm:itens:0:item_produto_coSeqProdutoSuggest').component,'produto.unidadeConsumo.dsUnidadeConsumo'); updateProduto(0,document.getElementById('dispensacaoForm:itens:0:item_produto_coSeqProduto').value)},'implicitEventsQueue':'dispensacaoForm:itens:0:item_produto_coSeqProdutoSuggest','width':'400','usingSuggestObjects':true,'containerId':'dispensacaoForm:itens:0:regionConsultaMedicamento','parameters':{'ajaxSingle':'dispensacaoForm:itens:0:item_produto_coSeqProdutoSuggest','dispensacaoForm:itens:0:item_produto_coSeqProdutoSuggest':'dispensacaoForm:itens:0:item_produto_coSeqProdutoSuggest'} ,'ignoreDupResponses':true,'frequency':999.0,'minChars':'3'} );
+});</script></div><iframe src="./SiteHorus_files/spacer(4).gif.html" id="dispensacaoForm:itens:0:item_produto_coSeqProdutoSuggest_iframe" style="position:absolute;display:none;z-index:200;"></iframe><input type="hidden" autocomplete="off" id="dispensacaoForm:itens:0:item_produto_coSeqProdutoSuggest_selection" name="dispensacaoForm:itens:0:item_produto_coSeqProdutoSuggest_selection"></td>
+<td><span id="dispensacaoForm:itens:0:regionConsultaMedicamento:status"><span id="dispensacaoForm:itens:0:regionConsultaMedicamento:status.start" style="display: none"><img src="./SiteHorus_files/ico_loading.gif"></span><span id="dispensacaoForm:itens:0:regionConsultaMedicamento:status.stop"></span></span></td>
+</tr>
+</tbody>
+</table>
+</span></td><td id="dispensacaoForm:itens:0:j_id396" class="rich-table-cell  center"><input id="dispensacaoForm:itens:0:item_qtDose" type="text" name="dispensacaoForm:itens:0:item_qtDose" value="1,00" class="campotxt" maxlength="6" onkeypress="return somenteNumero(event);" size="6" disabled="disabled">
+							
+							<br><br><span id="dispensacaoForm:itens:0:itemUnidadeConsumo"><input id="dispensacaoForm:itens:0:item_unidadeConsumo" type="text" name="dispensacaoForm:itens:0:item_unidadeConsumo" class="campotxt" size="5" disabled="disabled"></span></td><td id="dispensacaoForm:itens:0:j_id404" class="rich-table-cell  center"><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = "#dispensacaoForm\\:itens\\:0\\:item_qtPosologia";
+	try {
+		selector = eval("#dispensacaoForm\\:itens\\:0\\:item_qtPosologia");
+	} catch (e) {}
+	jQuery(selector).mask('999',{placeholder:'',clearInput:false});
+ });
+//]]></script><input id="dispensacaoForm:itens:0:item_qtPosologia" type="text" name="dispensacaoForm:itens:0:item_qtPosologia" value="1" class="campotxt center" maxlength="3" onkeypress="return somenteNumeroSemVirgula(event);" size="3" disabled="disabled"></td><td id="dispensacaoForm:itens:0:j_id414" class="rich-table-cell  center"><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = "#dispensacaoForm\\:itens\\:0\\:item_qtDuracaoTratamDia";
+	try {
+		selector = eval("#dispensacaoForm\\:itens\\:0\\:item_qtDuracaoTratamDia");
+	} catch (e) {}
+	jQuery(selector).mask('999',{placeholder:'',clearInput:false});
+ });
+//]]></script><input id="dispensacaoForm:itens:0:item_qtDuracaoTratamDia" type="text" name="dispensacaoForm:itens:0:item_qtDuracaoTratamDia" value="1" class="campotxt" size="4" disabled="disabled"></td><td id="dispensacaoForm:itens:0:j_id423" class="rich-table-cell  center"><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = "#dispensacaoForm\\:itens\\:0\\:item_nuDiasDispensar";
+	try {
+		selector = eval("#dispensacaoForm\\:itens\\:0\\:item_nuDiasDispensar");
+	} catch (e) {}
+	jQuery(selector).mask('999',{placeholder:'',clearInput:false});
+ });
+//]]></script><input id="dispensacaoForm:itens:0:item_nuDiasDispensar" type="text" name="dispensacaoForm:itens:0:item_nuDiasDispensar" value="1" class="campotxt" size="4" disabled="disabled"></td><td id="dispensacaoForm:itens:0:j_id432" class="rich-table-cell  center">
+							<ul class="colform" style="float: none">
+								<li style="float: none"><img alt="" class="rich-spacer " height="20px" id="dispensacaoForm:itens:0:j_id435" src="./SiteHorus_files/spacer.gif.jsf" width="1">
+	                        	<div style="center">Não Atender
+	                        	</div><select id="dispensacaoForm:itens:0:coStatusTramiteDetalhe" name="dispensacaoForm:itens:0:coStatusTramiteDetalhe" size="1" disabled="disabled">	<option value="" selected="selected">:: Selecione ::</option>
+	<option value="SE">SEM ESTOQUE</option>
+	<option value="SR">SEM RETORNO</option>
+	<option value="MT">MUDOU PRESCRIÇÃO</option>
+	<option value="NP">NAO PADRONIZADO</option>
+</select>
+								
+	
+								</li>
+	                        </ul></td><td id="dispensacaoForm:itens:0:j_id445" class="rich-table-cell  center">
+							<div style="display: inline; width: 100px; "><span class="rich-tool-tip " id="dispensacaoForm:itens:0:j_id462" style="z-index: 99; visibility: visible; display: none;"><span id="dispensacaoForm:itens:0:j_id462content">Histórico</span><span id="dispensacaoForm:itens:0:j_id462script" style="display:none"><script type="text/javascript" id="scriptdispensacaoForm:itens:0:j_id462">
+new ToolTip("dispensacaoForm:itens:0:j_id462","dispensacaoForm:itens:0:historicoItem",{'showEvent':'mouseover'} );
+</script></span></span><a id="dispensacaoForm:itens:0:excluirItem" href="https://horus.saude.gov.br/horus/paginas/dispensacao/dispensacao.jsf#" onclick="var a=function(){var r = confirmaOperacao(); if (!r) return r;  document.getElementById(&#39;loadingBox&#39;).component.show();};var b=function(){if(typeof jsfcljs == &#39;function&#39;){jsfcljs(document.getElementById(&#39;dispensacaoForm&#39;),{&#39;dispensacaoForm:itens:0:excluirItem&#39;:&#39;dispensacaoForm:itens:0:excluirItem&#39;,&#39;coSeqDispensacao&#39;:&#39;0&#39;},&#39;&#39;);}return false};return (a()==false) ? false : b();" class="excluir2"></a><span class="rich-tool-tip " id="dispensacaoForm:itens:0:j_id465" style="z-index: 99; visibility: visible; display: none;"><span id="dispensacaoForm:itens:0:j_id465content">Excluir</span><span id="dispensacaoForm:itens:0:j_id465script" style="display:none"><script type="text/javascript" id="scriptdispensacaoForm:itens:0:j_id465">
+new ToolTip("dispensacaoForm:itens:0:j_id465","dispensacaoForm:itens:0:excluirItem",{'showEvent':'mouseover'} );
+</script></span></span>
+									
+								</div><img alt="" class="rich-spacer " height="10px" id="dispensacaoForm:itens:0:j_id467" src="./SiteHorus_files/spacer.gif.jsf" width="1">
+							<br><span id="dispensacaoForm:itens:0:panelEstoqueAtual">Estoque:<span id="dispensacaoForm:itens:0:estoqueAtual">0</span></span></td></tr><tr class="rich-table-row "><td id="dispensacaoForm:itens:1:j_id371" class="rich-table-cell center"><span id="dispensacaoForm:itens:1:itemProduto"><input id="dispensacaoForm:itens:1:item_produto_coSeqProduto" type="hidden" name="dispensacaoForm:itens:1:item_produto_coSeqProduto">
+										<div style="width:250px; height:28px;">
+											<div style="float: left"><textarea id="dispensacaoForm:itens:1:item_produto_dsProduto" name="dispensacaoForm:itens:1:item_produto_dsProduto" class="campotxt" cols="50" rows="2" style="font-size: 9px;" autocomplete="off"></textarea>
+											</div>									
+											<div><a href="https://horus.saude.gov.br/horus/paginas/dispensacao/dispensacao.jsf" onclick="if (document.getElementById(&#39;dispensacaoForm:itens:1:item_produto_dsProduto&#39;).value.length &gt;= 4) { document.getElementById(&#39;dispensacaoForm:itens:1:item_produto_coSeqProdutoSuggest&#39;).component.callSuggestion(true); return false; } else {errorDialogMinimoQuatroCaracteres(); return false;}"><img id="dispensacaoForm:itens:1:fireItem_produto_coSeqProdutoSuggest" src="./SiteHorus_files/ico_nconsulta.gif" alt="" style="vertical-align:middle"></a>
+											</div>
+											<div><a id="dispensacaoForm:itens:1:downloadMonografiaLink" href="https://horus.saude.gov.br/horus/paginas/dispensacao/dispensacao.jsf#" title="Download de Monografia" onclick="if(typeof jsfcljs == &#39;function&#39;){jsfcljs(document.getElementById(&#39;dispensacaoForm&#39;),{&#39;dispensacaoForm:itens:1:downloadMonografiaLink&#39;:&#39;dispensacaoForm:itens:1:downloadMonografiaLink&#39;,&#39;itemIndex&#39;:&#39;1&#39;},&#39;&#39;);}return false"></a>
+											</div>
+										</div><script id="dispensacaoForm:itens:1:j_id385" type="text/javascript">//<![CDATA[
+		updateProduto=function(param1,param2){A4J.AJAX.Submit('dispensacaoForm',null,{'similarityGroupingId':'dispensacaoForm:itens:1:j_id385','containerId':'dispensacaoForm:itens:1:j_id375','parameters':{'dispensacaoForm:itens:1:j_id385':'dispensacaoForm:itens:1:j_id385','param1':param1,'param2':param2} } )};
+		//]]></script><table>
+<tbody>
+<tr>
+<td><div id="dispensacaoForm:itens:1:item_produto_coSeqProdutoSuggest" class="rich-sb-common-container  " style="display:none; z-index: 201;width:400px;height:200px;;;"><div class="rich-sb-ext-decor-1"><div class="rich-sb-ext-decor-2" style=";; border-width: null  null  null  null ;"><table border="0" cellpadding="0" cellspacing="1" class="rich-sb-ext-decor-3"><tbody><tr><td><div class="_suggestion_size_ rich-sb-overflow" style="width:396px;height:196px;"><table width="100%" id="dispensacaoForm:itens:1:item_produto_coSeqProdutoSuggest:suggest" border="0" onblur="A4J.AJAX.Submit(&#39;dispensacaoForm&#39;,event,{&#39;similarityGroupingId&#39;:&#39;dispensacaoForm:itens:1:item_produto_coSeqProdutoSuggest:j_id393&#39;,&#39;containerId&#39;:&#39;dispensacaoForm:itens:1:regionConsultaMedicamento&#39;,&#39;parameters&#39;:{&#39;dispensacaoForm:itens:1:item_produto_coSeqProdutoSuggest:j_id393&#39;:&#39;dispensacaoForm:itens:1:item_produto_coSeqProdutoSuggest:j_id393&#39;} } )"><tbody><tr style="display:none;"><td></td></tr></tbody></table></div></td></tr></tbody></table></div></div><div class="rich-sb-shadow" style="opacity:0.1; filter:alpha(opacity=10);top: 4px; left: 4px; "></div></div><div id="dispensacaoForm:itens:1:item_produto_coSeqProdutoSuggest_script" style="display:none;"><script type="text/javascript">Richfaces.onAvailable('dispensacaoForm:itens:1:item_produto_dsProduto', function() { new RichFaces.Suggestion('dispensacaoForm','dispensacaoForm:itens:1:item_produto_dsProduto','dispensacaoForm:itens:1:item_produto_coSeqProdutoSuggest',{'similarityGroupingId':'dispensacaoForm:itens:1:item_produto_coSeqProdutoSuggest','onselect':function(suggestion,event){setAutocompleterKeyField(                        document.getElementById('dispensacaoForm:itens:1:item_produto_coSeqProduto'),                         document.getElementById('dispensacaoForm:itens:1:item_produto_coSeqProdutoSuggest').component,                        'coSeqProduto');                                                  setAutocompleterKeyField(document.getElementById('dispensacaoForm:itens:1:item_unidadeConsumo'),                         document.getElementById('dispensacaoForm:itens:1:item_produto_coSeqProdutoSuggest').component,'produto.unidadeConsumo.dsUnidadeConsumo'); updateProduto(1,document.getElementById('dispensacaoForm:itens:1:item_produto_coSeqProduto').value)},'implicitEventsQueue':'dispensacaoForm:itens:1:item_produto_coSeqProdutoSuggest','width':'400','usingSuggestObjects':true,'containerId':'dispensacaoForm:itens:1:regionConsultaMedicamento','parameters':{'ajaxSingle':'dispensacaoForm:itens:1:item_produto_coSeqProdutoSuggest','dispensacaoForm:itens:1:item_produto_coSeqProdutoSuggest':'dispensacaoForm:itens:1:item_produto_coSeqProdutoSuggest'} ,'ignoreDupResponses':true,'frequency':999.0,'minChars':'3'} );
+});</script></div><iframe src="./SiteHorus_files/spacer(5).gif.html" id="dispensacaoForm:itens:1:item_produto_coSeqProdutoSuggest_iframe" style="position:absolute;display:none;z-index:200;"></iframe><input type="hidden" autocomplete="off" id="dispensacaoForm:itens:1:item_produto_coSeqProdutoSuggest_selection" name="dispensacaoForm:itens:1:item_produto_coSeqProdutoSuggest_selection"></td>
+<td><span id="dispensacaoForm:itens:1:regionConsultaMedicamento:status"><span id="dispensacaoForm:itens:1:regionConsultaMedicamento:status.start" style="display: none"><img src="./SiteHorus_files/ico_loading.gif"></span><span id="dispensacaoForm:itens:1:regionConsultaMedicamento:status.stop"></span></span></td>
+</tr>
+</tbody>
+</table>
+</span></td><td id="dispensacaoForm:itens:1:j_id396" class="rich-table-cell  center"><input id="dispensacaoForm:itens:1:item_qtDose" type="text" name="dispensacaoForm:itens:1:item_qtDose" class="campotxt" maxlength="6" onkeypress="return somenteNumero(event);" size="6">
+							
+							<br><br><span id="dispensacaoForm:itens:1:itemUnidadeConsumo"><input id="dispensacaoForm:itens:1:item_unidadeConsumo" type="text" name="dispensacaoForm:itens:1:item_unidadeConsumo" class="campotxt" size="5" disabled="disabled"></span></td><td id="dispensacaoForm:itens:1:j_id404" class="rich-table-cell  center"><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = "#dispensacaoForm\\:itens\\:1\\:item_qtPosologia";
+	try {
+		selector = eval("#dispensacaoForm\\:itens\\:1\\:item_qtPosologia");
+	} catch (e) {}
+	jQuery(selector).mask('999',{placeholder:'',clearInput:false});
+ });
+//]]></script><input id="dispensacaoForm:itens:1:item_qtPosologia" type="text" name="dispensacaoForm:itens:1:item_qtPosologia" class="campotxt center" maxlength="3" onkeypress="return somenteNumeroSemVirgula(event);" size="3"></td><td id="dispensacaoForm:itens:1:j_id414" class="rich-table-cell  center"><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = "#dispensacaoForm\\:itens\\:1\\:item_qtDuracaoTratamDia";
+	try {
+		selector = eval("#dispensacaoForm\\:itens\\:1\\:item_qtDuracaoTratamDia");
+	} catch (e) {}
+	jQuery(selector).mask('999',{placeholder:'',clearInput:false});
+ });
+//]]></script><input id="dispensacaoForm:itens:1:item_qtDuracaoTratamDia" type="text" name="dispensacaoForm:itens:1:item_qtDuracaoTratamDia" class="campotxt" size="4"></td><td id="dispensacaoForm:itens:1:j_id423" class="rich-table-cell  center"><script type="text/javascript">//<![CDATA[
+  jQuery(document).ready(function() {
+	var selector = "#dispensacaoForm\\:itens\\:1\\:item_nuDiasDispensar";
+	try {
+		selector = eval("#dispensacaoForm\\:itens\\:1\\:item_nuDiasDispensar");
+	} catch (e) {}
+	jQuery(selector).mask('999',{placeholder:'',clearInput:false});
+ });
+//]]></script><input id="dispensacaoForm:itens:1:item_nuDiasDispensar" type="text" name="dispensacaoForm:itens:1:item_nuDiasDispensar" value="30" class="campotxt" size="4"></td><td id="dispensacaoForm:itens:1:j_id432" class="rich-table-cell  center">
+							<ul class="colform" style="float: none">
+								<li style="float: none"><img alt="" class="rich-spacer " height="20px" id="dispensacaoForm:itens:1:j_id435" src="./SiteHorus_files/spacer.gif.jsf" width="1">
+	                        	<div style="center">Não Atender
+	                        	</div><select id="dispensacaoForm:itens:1:coStatusTramiteDetalhe" name="dispensacaoForm:itens:1:coStatusTramiteDetalhe" size="1" disabled="disabled">	<option value="" selected="selected">:: Selecione ::</option>
+	<option value="SE">SEM ESTOQUE</option>
+	<option value="SR">SEM RETORNO</option>
+	<option value="MT">MUDOU PRESCRIÇÃO</option>
+	<option value="NP">NAO PADRONIZADO</option>
+</select>
+								
+	
+								</li>
+	                        </ul></td><td id="dispensacaoForm:itens:1:j_id445" class="rich-table-cell  center">
+							<div style="display: inline; width: 100px; "><span class="rich-tool-tip " id="dispensacaoForm:itens:1:j_id462" style="z-index: 99; visibility: visible; display: none;"><span id="dispensacaoForm:itens:1:j_id462content">Histórico</span><span id="dispensacaoForm:itens:1:j_id462script" style="display:none"><script type="text/javascript" id="scriptdispensacaoForm:itens:1:j_id462">
+new ToolTip("dispensacaoForm:itens:1:j_id462","dispensacaoForm:itens:1:historicoItem",{'showEvent':'mouseover'} );
+</script></span></span><a id="dispensacaoForm:itens:1:excluirItem" href="https://horus.saude.gov.br/horus/paginas/dispensacao/dispensacao.jsf#" onclick="var a=function(){var r = confirmaOperacao(); if (!r) return r;  document.getElementById(&#39;loadingBox&#39;).component.show();};var b=function(){if(typeof jsfcljs == &#39;function&#39;){jsfcljs(document.getElementById(&#39;dispensacaoForm&#39;),{&#39;dispensacaoForm:itens:1:excluirItem&#39;:&#39;dispensacaoForm:itens:1:excluirItem&#39;,&#39;coSeqDispensacao&#39;:&#39;1&#39;},&#39;&#39;);}return false};return (a()==false) ? false : b();" class="excluir2"></a><span class="rich-tool-tip " id="dispensacaoForm:itens:1:j_id465" style="z-index: 99; visibility: visible; display: none;"><span id="dispensacaoForm:itens:1:j_id465content">Excluir</span><span id="dispensacaoForm:itens:1:j_id465script" style="display:none"><script type="text/javascript" id="scriptdispensacaoForm:itens:1:j_id465">
+new ToolTip("dispensacaoForm:itens:1:j_id465","dispensacaoForm:itens:1:excluirItem",{'showEvent':'mouseover'} );
+</script></span></span>
+									
+								</div><img alt="" class="rich-spacer " height="10px" id="dispensacaoForm:itens:1:j_id467" src="./SiteHorus_files/spacer.gif.jsf" width="1">
+							<br><span id="dispensacaoForm:itens:1:panelEstoqueAtual"></span></td></tr></tbody></table><div class="rich-datascr " id="dispensacaoForm:j_id471" style=" " align="center"><table border="0" cellpadding="0" cellspacing="1" class="rich-dtascroller-table " id="dispensacaoForm:j_id471_table" style="text-align:center"><tbody><tr><td class="rich-datascr-button-dsbld rich-datascr-button">««</td><td class="rich-datascr-button-dsbld rich-datascr-button">«</td><td class="rich-datascr-button-dsbld rich-datascr-button"></td><td class="rich-datascr-button-dsbld rich-datascr-button"></td><td class="rich-datascr-button-dsbld rich-datascr-button">»</td><td class="rich-datascr-button-dsbld rich-datascr-button">»»</td></tr></tbody></table><script type="text/javascript">new Richfaces.Datascroller('dispensacaoForm:j_id471', function(event){A4J.AJAX.Submit('dispensacaoForm',event,{'similarityGroupingId':'dispensacaoForm:j_id471','implicitEventsQueue':'dispensacaoForm:j_id471','parameters':{'dispensacaoForm:j_id471':event.memo.page,'ajaxSingle':'dispensacaoForm:j_id471'} ,'ignoreDupResponses':true} ); return false;});</script></div></span>
+					
+					<div class="quebra sp_10"></div><span id="dispensacaoForm:botoes">
+						<ul>
+								<span class="botao esq"><input class="salvar" id="dispensacaoForm:j_id474:idBotaoSalvar" name="dispensacaoForm:j_id474:idBotaoSalvar" onclick="document.getElementById(&#39;loadingBox&#39;).component.show();;A4J.AJAX.Submit(&#39;dispensacaoForm&#39;,event,{&#39;similarityGroupingId&#39;:&#39;dispensacaoForm:j_id474:idBotaoSalvar&#39;,&#39;oncomplete&#39;:function(request,event,data){document.getElementById(&#39;loadingBox&#39;).component.hide();verificaAtualizacaoCNS();},&#39;parameters&#39;:{&#39;dispensacaoForm:j_id474:idBotaoSalvar&#39;:&#39;dispensacaoForm:j_id474:idBotaoSalvar&#39;} } );return false;" value="Salvar" type="button">
+								</span>
+								<span class="botao esq"><input type="submit" name="dispensacaoForm:j_id479:j_id481" value="Voltar" onclick="document.getElementById(&#39;loadingBox&#39;).component.show();" class="voltar botao esq">
+								</span>
+						</ul></span><span style="display:none;" id="dispensacaoForm:pollXml"><script type="text/javascript">
+A4J.AJAX.StopPoll('dispensacaoForm:pollXml');
+</script></span><span id="dispensacaoForm:outputPanelDownload">            				
+	            				<script>       
+									function acaoBotao(tipoRelatorio){ 
+										if(tipoRelatorio == 'todos')
+										{
+											document.getElementById('dispensacaoForm:relatorioAcaoTodos').click();
+										}
+										if(tipoRelatorio == 'cupom')
+										{
+											document.getElementById('dispensacaoForm:relatorioAcaoCupom').click();
+										}
+										if(tipoRelatorio == 'a4')
+										{
+											document.getElementById('dispensacaoForm:relatorioAcaoA4').click();
+										}
+										document.getElementById('loadingBox').component.show();
+									}
+									
+									if (false) {
+                                     	// clicar no boto oculto de download
+                                     	document.getElementById('dispensacaoForm:buttonHiddenDownload').click();
+									}
+									
+	            					function chamaDownloadXml(){
+		                    			if (false) {
+		                    				document.getElementById('dispensacaoForm:j_id483:buttonHiddenImprimirXml').click();
+		                    			}
+	            					}
+	            				</script><input id="dispensacaoForm:relatorioAcaoTodos" type="submit" name="dispensacaoForm:relatorioAcaoTodos" value=" " style="visibility: hidden;"><input id="dispensacaoForm:relatorioAcaoCupom" type="submit" name="dispensacaoForm:relatorioAcaoCupom" value=" " style="visibility: hidden;"><input id="dispensacaoForm:relatorioAcaoA4" type="submit" name="dispensacaoForm:relatorioAcaoA4" value=" " style="visibility: hidden;"></span><span style="display:none;" id="dispensacaoForm:poll"><script type="text/javascript">
+A4J.AJAX.StopPoll('dispensacaoForm:poll');
+</script></span><input id="dispensacaoForm:buttonHiddenDownload" type="submit" name="dispensacaoForm:buttonHiddenDownload" value="" onclick="document.getElementById(&#39;loadingBox&#39;).component.hide();" style="visibility: hidden;">	
+					<ul>
+						<span><font style="color: red;">*</font><font> - campos obrigatrios</font></span>
+					</ul><div id="dispensacaoForm:historicoItemPanel" style="display: none;"><input autocomplete="off" id="dispensacaoForm:historicoItemPanelOpenedState" name="dispensacaoForm:historicoItemPanelOpenedState" type="hidden"><div class="rich-modalpanel " id="dispensacaoForm:historicoItemPanelContainer" style="position: absolute; display: none; z-index: 100; background-color: inherit;"><div class="rich-mpnl-mask-div-opaque rich-mpnl-mask-div" id="dispensacaoForm:historicoItemPanelDiv" style="z-index: -1;"><button class="rich-mpnl-button" id="dispensacaoForm:historicoItemPanelFirstHref"></button></div><div class="rich-mpnl-panel"><div class="rich-mp-container" id="dispensacaoForm:historicoItemPanelCDiv" style="position: absolute; left: 0px; top: 0px; z-index: 9;"><div class="rich-mpnl-shadow" id="dispensacaoForm:historicoItemPanelShadowDiv"></div><div class=" rich-mpnl-content" id="dispensacaoForm:historicoItemPanelContentDiv"><div class="rich-mpnl-text rich-mpnl-controls "><img id="dispensacaoForm:hidelink" src="./SiteHorus_files/ico_close.gif" class="hidelink"><script type="text/javascript">Richfaces.componentControl.attachAvailable('#dispensacaoForm\\:hidelink','onclick','#dispensacaoForm\\:historicoItemPanel','hide')</script></div><table border="0" cellpadding="0" cellspacing="0" class="rich-mp-content-table" id="dispensacaoForm:historicoItemPanelContentTable" style="width: 1px;height: 1px;"><tbody><tr style="height: 1%;"><td class="rich-mpnl-header-cell"><div class="rich-mpnl-text rich-mpnl-header " id="dispensacaoForm:historicoItemPanelHeader" style="white-space: nowrap; cursor: move;">Histórico</div></td></tr><tr style="height: 99%"><td class="rich-mpnl-body" valign="top">
+				        <div style="width:580px;"><table class="rich-table col_comp" id="dispensacaoForm:historicoItemTable" align="center" border="0" cellpadding="0" cellspacing="0"><colgroup span="7"></colgroup><thead class="rich-table-thead"><tr class="rich-table-subheader "><th class="rich-table-subheadercell  " scope="col">Dt. <br>Atendimento</th><th class="rich-table-subheadercell  " scope="col">Qtd. <br>Dispensada</th><th class="rich-table-subheadercell  " scope="col">Qtd.<br>(Dose)</th><th class="rich-table-subheadercell  " scope="col">Frequência</th><th class="rich-table-subheadercell  " scope="col">Local de Atendimento</th><th class="rich-table-subheadercell  " scope="col">Situação <br>Dispensação</th><th class="rich-table-subheadercell  " scope="col">Nº Dispensação</th></tr></thead><tbody id="dispensacaoForm:historicoItemTable:tb"></tbody></table>
+						</div><div class="rich-datascr " id="dispensacaoForm:j_id530" style=" " align="center"><table border="0" cellpadding="0" cellspacing="1" class="rich-dtascroller-table " id="dispensacaoForm:j_id530_table" style="text-align:center"><tbody><tr><td class="rich-datascr-button-dsbld rich-datascr-button">««</td><td class="rich-datascr-button-dsbld rich-datascr-button">«</td><td class="rich-datascr-button-dsbld rich-datascr-button"></td><td class="rich-datascr-button-dsbld rich-datascr-button"></td><td class="rich-datascr-button-dsbld rich-datascr-button">»</td><td class="rich-datascr-button-dsbld rich-datascr-button">»»</td></tr></tbody></table><script type="text/javascript">new Richfaces.Datascroller('dispensacaoForm:j_id530', function(event){A4J.AJAX.Submit('dispensacaoForm',event,{'similarityGroupingId':'dispensacaoForm:j_id530','implicitEventsQueue':'dispensacaoForm:j_id530','parameters':{'ajaxSingle':'dispensacaoForm:j_id530','dispensacaoForm:j_id530':event.memo.page} ,'ignoreDupResponses':true} ); return false;});</script></div></td></tr></tbody></table></div></div></div><div class="rich-mpnl-mask-div rich-mpnl-mask-div-transparent" id="dispensacaoForm:historicoItemPanelCursorDiv" style="z-index: -200;"><button class="rich-mpnl-button" id="dispensacaoForm:historicoItemPanelLastHref"></button></div><script type="text/javascript">new ModalPanel('dispensacaoForm:historicoItemPanel',
+				{
+					width: -1,
+					height: -1,
+
+					minWidth: -1,
+					minHeight: -1,
+
+					resizeable: false,
+					moveable: true,
+
+					left: "auto",
+					top: "auto",
+
+					zindex: 100,onresize: '',onmove: '',onshow: '',onhide: '',onbeforeshow: '',onbeforehide: '',
+					domElementAttachment: "",				
+					keepVisualState: false,
+					showWhenRendered: false,
+					selectBehavior: "disable",
+
+					autosized: true,
+					overlapEmbedObjects: false});</script></div><script type="text/javascript"></script></div><input type="hidden" name="javax.faces.ViewState" id="javax.faces.ViewState" value="j_id5" autocomplete="off">
+</form><div id="waitingPanel" style="display: none;"><input autocomplete="off" id="waitingPanelOpenedState" name="waitingPanelOpenedState" type="hidden"><div class="rich-modalpanel " id="waitingPanelContainer" style="position: absolute; display: none; z-index: 100; background-color: inherit;"><div class="rich-mpnl-mask-div-opaque rich-mpnl-mask-div" id="waitingPanelDiv" style="z-index: -1;"><button class="rich-mpnl-button" id="waitingPanelFirstHref"></button></div><div class="rich-mpnl-panel"><div class="rich-mp-container" id="waitingPanelCDiv" style="position: absolute; left: 0px; top: 0px; z-index: 9;"><div class="rich-mpnl-shadow" id="waitingPanelShadowDiv"></div><div class=" rich-mpnl-content" id="waitingPanelContentDiv"><table border="0" cellpadding="0" cellspacing="0" class="rich-mp-content-table" id="waitingPanelContentTable" style="width: 250px;height: 1px;"><tbody><tr style="height: 99%"><td class="rich-mpnl-body" valign="top"><table>
+<tbody>
+<tr>
+<td><img src="./SiteHorus_files/ico_loading.gif"></td>
+</tr>
+<tr>
+<td>Por favor, Aguarde. Processando informações.</td>
+</tr>
+</tbody>
+</table>
+</td></tr></tbody></table></div></div></div><div class="rich-mpnl-mask-div rich-mpnl-mask-div-transparent" id="waitingPanelCursorDiv" style="z-index: -200;"><button class="rich-mpnl-button" id="waitingPanelLastHref"></button></div><script type="text/javascript">new ModalPanel('waitingPanel',
+				{
+					width: 250,
+					height: -1,
+
+					minWidth: -1,
+					minHeight: -1,
+
+					resizeable: false,
+					moveable: true,
+
+					left: "auto",
+					top: "auto",
+
+					zindex: 100,onresize: '',onmove: '',onshow: '',onhide: '',onbeforeshow: '',onbeforehide: '',
+					domElementAttachment: "",				
+					keepVisualState: false,
+					showWhenRendered: false,
+					selectBehavior: "disable",
+
+					autosized: true,
+					overlapEmbedObjects: false});</script></div><script type="text/javascript"></script></div><div id="baixaPanelAtender" style="display: none;"><input autocomplete="off" id="baixaPanelAtenderOpenedState" name="baixaPanelAtenderOpenedState" type="hidden"><div class="rich-modalpanel " id="baixaPanelAtenderContainer" style="position: absolute; display: none; z-index: 100; background-color: inherit;"><div class="rich-mpnl-mask-div-opaque rich-mpnl-mask-div" id="baixaPanelAtenderDiv" style="z-index: -1;"><button class="rich-mpnl-button" id="baixaPanelAtenderFirstHref"></button></div><div class="rich-mpnl-panel"><div class="rich-mp-container" id="baixaPanelAtenderCDiv" style="position: absolute; left: 0px; top: 0px; z-index: 9;"><div class="rich-mpnl-shadow" id="baixaPanelAtenderShadowDiv"></div><div class="rich-mpnl-ovf-hd rich-mpnl-trim rich-mpnl-content" id="baixaPanelAtenderContentDiv"><div class="rich-mpnl-text rich-mpnl-controls "><img id="baixaPanel_closehidelink" src="./SiteHorus_files/ico_close.gif" class="hidelink"><script type="text/javascript">Richfaces.componentControl.attachAvailable('#baixaPanel_closehidelink','onclick','#baixaPanelAtender','hide')</script></div><table border="0" cellpadding="0" cellspacing="0" class="rich-mp-content-table" id="baixaPanelAtenderContentTable" style="height: 100%; width: 100%;"><tbody><tr style="height: 1%;"><td class="rich-mpnl-header-cell"><div class="rich-mpnl-text rich-mpnl-header " id="baixaPanelAtenderHeader" style="white-space: nowrap; cursor: move;">Baixa de Itens a Dispensar</div></td></tr><tr style="height: 99%"><td class="rich-mpnl-body" valign="top">
+<form id="baixaAgendaDispensacaoAtenderForm" name="baixaAgendaDispensacaoAtenderForm" method="post" action="https://horus.saude.gov.br/horus/paginas/dispensacao/dispensacao.jsf" enctype="application/x-www-form-urlencoded">
+<input type="hidden" name="baixaAgendaDispensacaoAtenderForm" value="baixaAgendaDispensacaoAtenderForm">
+<span id="baixaAgendaDispensacaoAtenderForm:qtAtendido_label">Qtd. a Atender: </span><input id="baixaAgendaDispensacaoAtenderForm:baixaAgendaDispensacao_qtAtendido" type="text" name="baixaAgendaDispensacaoAtenderForm:baixaAgendaDispensacao_qtAtendido" class="campotxt" maxlength="6">
+					<div style="height:10px"></div>
+					<span class="botao"><input id="baixaAgendaDispensacaoAtenderForm:baixaAutomaticaAtenderBtn" type="submit" name="baixaAgendaDispensacaoAtenderForm:baixaAutomaticaAtenderBtn" value="Automática" onclick="document.getElementById(&#39;armazenaBtnLoading&#39;).component.show();" style="width:86px" class="confirmar">
+					</span>
+					<span style="width:20px"></span>
+					<span class="botao"><input class="editar" id="baixaAgendaDispensacaoAtenderForm:baixaManualAtenderBtn" name="baixaAgendaDispensacaoAtenderForm:baixaManualAtenderBtn" onclick="document.getElementById(&#39;armazenaBtnLoading&#39;).component.show();;A4J.AJAX.Submit(&#39;baixaAgendaDispensacaoAtenderForm&#39;,event,{&#39;similarityGroupingId&#39;:&#39;baixaAgendaDispensacaoAtenderForm:baixaManualAtenderBtn&#39;,&#39;oncomplete&#39;:function(request,event,data){document.getElementById(&#39;armazenaBtnLoading&#39;).component.hide(); document.getElementById(&#39;baixaPanelAtender&#39;).component.hide();},&#39;parameters&#39;:{&#39;baixaAgendaDispensacaoAtenderForm:baixaManualAtenderBtn&#39;:&#39;baixaAgendaDispensacaoAtenderForm:baixaManualAtenderBtn&#39;} } );return false;" value="Manual" style="width: 66px" type="button">
+					</span><input type="hidden" name="javax.faces.ViewState" id="javax.faces.ViewState" value="j_id5" autocomplete="off">
+</form></td></tr></tbody></table></div><div class="rich-mpnl-resizer" id="baixaPanelAtenderResizerN" style="width: 40px; height: 4px; cursor: n-resize;"></div><div class="rich-mpnl-resizer" id="baixaPanelAtenderResizerE" style="height: 40px; width: 4px; cursor: e-resize;"></div><div class="rich-mpnl-resizer" id="baixaPanelAtenderResizerS" style="width: 40px; height: 4px; cursor: s-resize;"></div><div class="rich-mpnl-resizer" id="baixaPanelAtenderResizerW" style="height: 40px; width: 4px; cursor: w-resize;"></div><div class="rich-mpnl-resizer" id="baixaPanelAtenderResizerNWU" style="width: 40px; height: 4px; cursor: nw-resize;"></div><div class="rich-mpnl-resizer" id="baixaPanelAtenderResizerNEU" style="height: 40px; width: 4px; cursor: ne-resize;"></div><div class="rich-mpnl-resizer" id="baixaPanelAtenderResizerNEL" style="width: 40px; height: 4px; cursor: ne-resize;"></div><div class="rich-mpnl-resizer" id="baixaPanelAtenderResizerSEU" style="height: 40px; width: 4px; cursor: se-resize;"></div><div class="rich-mpnl-resizer" id="baixaPanelAtenderResizerSEL" style="width: 40px; height: 4px; cursor: se-resize;"></div><div class="rich-mpnl-resizer" id="baixaPanelAtenderResizerSWL" style="height: 40px; width: 4px; cursor: sw-resize;"></div><div class="rich-mpnl-resizer" id="baixaPanelAtenderResizerSWU" style="width: 40px; height: 4px; cursor: sw-resize;"></div><div class="rich-mpnl-resizer" id="baixaPanelAtenderResizerNWL" style="height: 40px; width: 4px; cursor: nw-resize;"></div></div></div><div class="rich-mpnl-mask-div rich-mpnl-mask-div-transparent" id="baixaPanelAtenderCursorDiv" style="z-index: -200;"><button class="rich-mpnl-button" id="baixaPanelAtenderLastHref"></button></div><script type="text/javascript">new ModalPanel('baixaPanelAtender',
+				{
+					width: -1,
+					height: -1,
+
+					minWidth: -1,
+					minHeight: -1,
+
+					resizeable: true,
+					moveable: true,
+
+					left: "auto",
+					top: "auto",
+
+					zindex: 100,onresize: '',onmove: '',onshow: '',onhide: '',onbeforeshow: '',onbeforehide: '',
+					domElementAttachment: "",				
+					keepVisualState: false,
+					showWhenRendered: false,
+					selectBehavior: "disable",
+
+					autosized: false,
+					overlapEmbedObjects: false});</script></div><script type="text/javascript"></script></div><div id="armazenaBtnLoading" style="display: none;"><input autocomplete="off" id="armazenaBtnLoadingOpenedState" name="armazenaBtnLoadingOpenedState" type="hidden"><div class="rich-modalpanel " id="armazenaBtnLoadingContainer" style="position: absolute; display: none; z-index: 100; background-color: inherit;"><div class="rich-mpnl-mask-div-opaque rich-mpnl-mask-div" id="armazenaBtnLoadingDiv" style="z-index: -1;"><button class="rich-mpnl-button" id="armazenaBtnLoadingFirstHref"></button></div><div class="rich-mpnl-panel"><div class="rich-mp-container" id="armazenaBtnLoadingCDiv" style="position: absolute; left: 0px; top: 0px; z-index: 9;"><div class="rich-mpnl-shadow" id="armazenaBtnLoadingShadowDiv"></div><div class=" rich-mpnl-content" id="armazenaBtnLoadingContentDiv"><table border="0" cellpadding="0" cellspacing="0" class="rich-mp-content-table" id="armazenaBtnLoadingContentTable" style="width: 250px;height: 1px;"><tbody><tr style="height: 99%"><td class="rich-mpnl-body" valign="top"><table>
+<tbody>
+<tr>
+<td><img src="./SiteHorus_files/ico_loading.gif"></td>
+</tr>
+<tr>
+<td>Por favor, Aguarde. Processando informações.</td>
+</tr>
+</tbody>
+</table>
+</td></tr></tbody></table></div></div></div><div class="rich-mpnl-mask-div rich-mpnl-mask-div-transparent" id="armazenaBtnLoadingCursorDiv" style="z-index: -200;"><button class="rich-mpnl-button" id="armazenaBtnLoadingLastHref"></button></div><script type="text/javascript">new ModalPanel('armazenaBtnLoading',
+				{
+					width: 250,
+					height: -1,
+
+					minWidth: -1,
+					minHeight: -1,
+
+					resizeable: false,
+					moveable: true,
+
+					left: "auto",
+					top: "auto",
+
+					zindex: 100,onresize: '',onmove: '',onshow: '',onhide: '',onbeforeshow: '',onbeforehide: '',
+					domElementAttachment: "",				
+					keepVisualState: false,
+					showWhenRendered: false,
+					selectBehavior: "disable",
+
+					autosized: true,
+					overlapEmbedObjects: false});</script></div><script type="text/javascript"></script></div></div>
+
+<div class="quebra sp_20"></div>
+</div>
+
+ 
+<div id="rodape">Ministério da Saúde - SGEP/DATASUS - SCTIE/DAF</div>
+
+
+</div><div id="errorDialog" style="display: none;"><input autocomplete="off" id="errorDialogOpenedState" name="errorDialogOpenedState" type="hidden"><div class="rich-modalpanel " id="errorDialogContainer" style="position: absolute; display: none; z-index: 100; background-color: inherit;"><div class="rich-mpnl-mask-div-opaque rich-mpnl-mask-div" id="errorDialogDiv" style="z-index: -1;"><button class="rich-mpnl-button" id="errorDialogFirstHref"></button></div><div class="rich-mpnl-panel"><div class="rich-mp-container" id="errorDialogCDiv" style="position: absolute; left: 0px; top: 0px; z-index: 9;"><div class="rich-mpnl-shadow" id="errorDialogShadowDiv"></div><div class="rich-mpnl-ovf-hd rich-mpnl-trim rich-mpnl-content" id="errorDialogContentDiv"><div class="rich-mpnl-text rich-mpnl-controls "><img id="hidelink" src="./SiteHorus_files/ico_close.gif" class="hidelink"><script type="text/javascript">Richfaces.componentControl.attachAvailable('#hidelink','onclick','#errorDialog','hide')</script></div><table border="0" cellpadding="0" cellspacing="0" class="rich-mp-content-table" id="errorDialogContentTable" style="height: 100%; width: 100%;"><tbody><tr style="height: 1%;"><td class="rich-mpnl-header-cell"><div class="rich-mpnl-text rich-mpnl-header " id="errorDialogHeader" style="white-space: nowrap; cursor: move;">Mensagem</div></td></tr><tr style="height: 99%"><td class="rich-mpnl-body" valign="top">
+	<center><span id="errorMessage">Mensagem</span>
+	<br><img alt="" class="rich-spacer " height="30px" id="j_id552" src="./SiteHorus_files/spacer.gif.jsf" width="1"> <br><img id="errorDialogFechar" src="./SiteHorus_files/botao_fechar.png" class="hidelink"><script type="text/javascript">Richfaces.componentControl.attachAvailable('#errorDialogFechar','onclick','#errorDialog','hide')</script></center></td></tr></tbody></table></div><div class="rich-mpnl-resizer" id="errorDialogResizerN" style="width: 40px; height: 4px; cursor: n-resize;"></div><div class="rich-mpnl-resizer" id="errorDialogResizerE" style="height: 40px; width: 4px; cursor: e-resize;"></div><div class="rich-mpnl-resizer" id="errorDialogResizerS" style="width: 40px; height: 4px; cursor: s-resize;"></div><div class="rich-mpnl-resizer" id="errorDialogResizerW" style="height: 40px; width: 4px; cursor: w-resize;"></div><div class="rich-mpnl-resizer" id="errorDialogResizerNWU" style="width: 40px; height: 4px; cursor: nw-resize;"></div><div class="rich-mpnl-resizer" id="errorDialogResizerNEU" style="height: 40px; width: 4px; cursor: ne-resize;"></div><div class="rich-mpnl-resizer" id="errorDialogResizerNEL" style="width: 40px; height: 4px; cursor: ne-resize;"></div><div class="rich-mpnl-resizer" id="errorDialogResizerSEU" style="height: 40px; width: 4px; cursor: se-resize;"></div><div class="rich-mpnl-resizer" id="errorDialogResizerSEL" style="width: 40px; height: 4px; cursor: se-resize;"></div><div class="rich-mpnl-resizer" id="errorDialogResizerSWL" style="height: 40px; width: 4px; cursor: sw-resize;"></div><div class="rich-mpnl-resizer" id="errorDialogResizerSWU" style="width: 40px; height: 4px; cursor: sw-resize;"></div><div class="rich-mpnl-resizer" id="errorDialogResizerNWL" style="height: 40px; width: 4px; cursor: nw-resize;"></div></div></div><div class="rich-mpnl-mask-div rich-mpnl-mask-div-transparent" id="errorDialogCursorDiv" style="z-index: -200;"><button class="rich-mpnl-button" id="errorDialogLastHref"></button></div><script type="text/javascript">new ModalPanel('errorDialog',
+				{
+					width: -1,
+					height: -1,
+
+					minWidth: -1,
+					minHeight: -1,
+
+					resizeable: true,
+					moveable: true,
+
+					left: "auto",
+					top: "auto",
+
+					zindex: 100,onresize: '',onmove: '',onshow: '',onhide: '',onbeforeshow: '',onbeforehide: '',
+					domElementAttachment: "",				
+					keepVisualState: false,
+					showWhenRendered: false,
+					selectBehavior: "disable",
+
+					autosized: false,
+					overlapEmbedObjects: false});</script></div><script type="text/javascript"></script></div><div id="loadingBox" style="display: none;"><input autocomplete="off" id="loadingBoxOpenedState" name="loadingBoxOpenedState" type="hidden"><div class="rich-modalpanel " id="loadingBoxContainer" style="position: absolute; display: none; z-index: 100; background-color: inherit;"><div class="rich-mpnl-mask-div-opaque rich-mpnl-mask-div" id="loadingBoxDiv" style="z-index: -1;"><button class="rich-mpnl-button" id="loadingBoxFirstHref"></button></div><div class="rich-mpnl-panel"><div class="rich-mp-container" id="loadingBoxCDiv" style="position: absolute; left: 0px; top: 0px; z-index: 9;"><div class="rich-mpnl-shadow" id="loadingBoxShadowDiv"></div><div class=" rich-mpnl-content" id="loadingBoxContentDiv"><table border="0" cellpadding="0" cellspacing="0" class="rich-mp-content-table" id="loadingBoxContentTable" style="width: 250px;height: 1px;"><tbody><tr style="height: 99%"><td class="rich-mpnl-body" valign="top"><table>
+<tbody>
+<tr>
+<td><img src="./SiteHorus_files/ico_loading.gif"></td>
+</tr>
+<tr>
+<td>Por favor, Aguarde. Processando informações.</td>
+</tr>
+</tbody>
+</table>
+</td></tr></tbody></table></div></div></div><div class="rich-mpnl-mask-div rich-mpnl-mask-div-transparent" id="loadingBoxCursorDiv" style="z-index: -200;"><button class="rich-mpnl-button" id="loadingBoxLastHref"></button></div><script type="text/javascript">new ModalPanel('loadingBox',
+				{
+					width: 250,
+					height: -1,
+
+					minWidth: -1,
+					minHeight: -1,
+
+					resizeable: false,
+					moveable: true,
+
+					left: "auto",
+					top: "auto",
+
+					zindex: 100,onresize: '',onmove: '',onshow: '',onhide: '',onbeforeshow: '',onbeforehide: '',
+					domElementAttachment: "",				
+					keepVisualState: false,
+					showWhenRendered: false,
+					selectBehavior: "disable",
+
+					autosized: true,
+					overlapEmbedObjects: false});</script></div><script type="text/javascript"></script></div><div id="downloadManualDialog" style="display: none;"><input autocomplete="off" id="downloadManualDialogOpenedState" name="downloadManualDialogOpenedState" type="hidden"><div class="rich-modalpanel " id="downloadManualDialogContainer" style="position: absolute; display: none; z-index: 100; background-color: inherit;"><div class="rich-mpnl-mask-div-opaque rich-mpnl-mask-div" id="downloadManualDialogDiv" style="z-index: -1;"><button class="rich-mpnl-button" id="downloadManualDialogFirstHref"></button></div><div class="rich-mpnl-panel"><div class="rich-mp-container" id="downloadManualDialogCDiv" style="position: absolute; left: 0px; top: 0px; z-index: 9;"><div class="rich-mpnl-shadow" id="downloadManualDialogShadowDiv"></div><div class="rich-mpnl-ovf-hd rich-mpnl-trim rich-mpnl-content" id="downloadManualDialogContentDiv"><div class="rich-mpnl-text rich-mpnl-controls "><img id="hidelink_downloadManualDialog" src="./SiteHorus_files/ico_close.gif" class="hidelink"><script type="text/javascript">Richfaces.componentControl.attachAvailable('#hidelink_downloadManualDialog','onclick','#downloadManualDialog','hide')</script></div><table border="0" cellpadding="0" cellspacing="0" class="rich-mp-content-table" id="downloadManualDialogContentTable" style="height: 100%; width: 100%;"><tbody><tr style="height: 1%;"><td class="rich-mpnl-header-cell"><div class="rich-mpnl-text rich-mpnl-header " id="downloadManualDialogHeader" style="white-space: nowrap; cursor: move;">Mensagem</div></td></tr><tr style="height: 99%"><td class="rich-mpnl-body" valign="top">
+	<center>Manuais não disponíveis para download nesta versão. <br><img alt="" class="rich-spacer " height="30px" id="j_id566" src="./SiteHorus_files/spacer.gif.jsf" width="1"> <br><img id="downloadManualDialogFechar" src="./SiteHorus_files/botao_fechar.png" class="hidelink"><script type="text/javascript">Richfaces.componentControl.attachAvailable('#downloadManualDialogFechar','onclick','#downloadManualDialog','hide')</script></center></td></tr></tbody></table></div><div class="rich-mpnl-resizer" id="downloadManualDialogResizerN" style="width: 40px; height: 4px; cursor: n-resize;"></div><div class="rich-mpnl-resizer" id="downloadManualDialogResizerE" style="height: 40px; width: 4px; cursor: e-resize;"></div><div class="rich-mpnl-resizer" id="downloadManualDialogResizerS" style="width: 40px; height: 4px; cursor: s-resize;"></div><div class="rich-mpnl-resizer" id="downloadManualDialogResizerW" style="height: 40px; width: 4px; cursor: w-resize;"></div><div class="rich-mpnl-resizer" id="downloadManualDialogResizerNWU" style="width: 40px; height: 4px; cursor: nw-resize;"></div><div class="rich-mpnl-resizer" id="downloadManualDialogResizerNEU" style="height: 40px; width: 4px; cursor: ne-resize;"></div><div class="rich-mpnl-resizer" id="downloadManualDialogResizerNEL" style="width: 40px; height: 4px; cursor: ne-resize;"></div><div class="rich-mpnl-resizer" id="downloadManualDialogResizerSEU" style="height: 40px; width: 4px; cursor: se-resize;"></div><div class="rich-mpnl-resizer" id="downloadManualDialogResizerSEL" style="width: 40px; height: 4px; cursor: se-resize;"></div><div class="rich-mpnl-resizer" id="downloadManualDialogResizerSWL" style="height: 40px; width: 4px; cursor: sw-resize;"></div><div class="rich-mpnl-resizer" id="downloadManualDialogResizerSWU" style="width: 40px; height: 4px; cursor: sw-resize;"></div><div class="rich-mpnl-resizer" id="downloadManualDialogResizerNWL" style="height: 40px; width: 4px; cursor: nw-resize;"></div></div></div><div class="rich-mpnl-mask-div rich-mpnl-mask-div-transparent" id="downloadManualDialogCursorDiv" style="z-index: -200;"><button class="rich-mpnl-button" id="downloadManualDialogLastHref"></button></div><script type="text/javascript">new ModalPanel('downloadManualDialog',
+				{
+					width: -1,
+					height: -1,
+
+					minWidth: -1,
+					minHeight: -1,
+
+					resizeable: true,
+					moveable: true,
+
+					left: "auto",
+					top: "auto",
+
+					zindex: 100,onresize: '',onmove: '',onshow: '',onhide: '',onbeforeshow: '',onbeforehide: '',
+					domElementAttachment: "",				
+					keepVisualState: false,
+					showWhenRendered: false,
+					selectBehavior: "disable",
+
+					autosized: false,
+					overlapEmbedObjects: false});</script></div><script type="text/javascript"></script></div>
+
+
+</body></html>

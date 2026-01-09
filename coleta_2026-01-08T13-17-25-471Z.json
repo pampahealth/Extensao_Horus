@@ -1,0 +1,63 @@
+{
+  "coletadoEm": "2026-01-08T13:17:16.874Z",
+  "dados": {
+    "coCrmMedico": "1332064",
+    "coPaciente": "12421045",
+    "coSeqOrigemReceita": {
+      "text": "UBS",
+      "value": "31945"
+    },
+    "coSubgrupoOrigemReceita": {
+      "text": "MÉDICOS DA REDE DE SAÚDE",
+      "value": "53041"
+    },
+    "dsObservacao": "TESTE",
+    "dtNascimento": "26/06/1954",
+    "dtReceita": "08/01/2026",
+    "itens": [
+      {
+        "coStatusTramiteDetalhe": {
+          "text": ":: Selecione ::",
+          "value": ""
+        },
+        "estoqueAtual": "0",
+        "index": 0,
+        "nuDiasDispensar": "1",
+        "produto": {
+          "coSeqProduto": "46451",
+          "dsProduto": "BR0436237-CARISOPRODOL + PARACETAMOL  300+100 MG CÁPSULA"
+        },
+        "qtDose": "1,00",
+        "qtDuracaoTratamDia": "1",
+        "qtPosologia": "1",
+        "unidadeConsumo": null
+      },
+      {
+        "coStatusTramiteDetalhe": {
+          "text": ":: Selecione ::",
+          "value": ""
+        },
+        "estoqueAtual": "0",
+        "index": 1,
+        "nuDiasDispensar": "1",
+        "produto": {
+          "coSeqProduto": "95213",
+          "dsProduto": "BR0480127- LANSOPRAZOL, ASSOCIADA À AMOXICILINA E LEVOFLOXACINO 30MG + 500MG + 500MG CÁPSULA"
+        },
+        "qtDose": "1,00",
+        "qtDuracaoTratamDia": "1",
+        "qtPosologia": "1",
+        "unidadeConsumo": "CAPS."
+      }
+    ],
+    "medico": "TESTE",
+    "noNome": "JOAO TESTE",
+    "noPrescritor": null,
+    "nuCartaoSus": "700005452554607",
+    "nuConselho": "12345",
+    "nuReceita": "12345"
+  },
+  "site": "horus.saude.gov.br",
+  "tipo": "formulario_dispensacao",
+  "url": "https://horus.saude.gov.br/horus/paginas/dispensacao/dispensacao.jsf"
+}
