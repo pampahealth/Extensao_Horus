@@ -95,6 +95,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 const form = document.getElementById("dispensacaoForm");
                 if (!form) return null;
 
+                const formatarTexto = (str) => {
+                  if (!str) return null;
+                  return str.replace(/\s+/g, " ").trim();
+                };
+
                 const getFieldValue = (id) => {
                   const field = document.getElementById(id);
                   if (!field) return null;
@@ -111,7 +116,43 @@ document.addEventListener("DOMContentLoaded", () => {
                     return field.value;
                   }
                   
-                  return field.value || null;
+                  // Retorna o valor, mas trata string vazia como null
+                  const valor = field.value;
+                  return valor && valor.trim() !== "" ? valor.trim() : null;
+                };
+
+                const getNomeOperador = () => {
+                  const tabelaNavegacao = document.getElementById("navegacao");
+                  if (!tabelaNavegacao) return null;
+                  
+                  const celulas = tabelaNavegacao.querySelectorAll("td");
+                  for (const celula of celulas) {
+                    const texto = celula.textContent || celula.innerText;
+                    if (texto && texto.includes("Operador:")) {
+                      const match = texto.match(/Operador:\s*(.+)/i);
+                      if (match && match[1]) {
+                        return formatarTexto(match[1]);
+                      }
+                    }
+                  }
+                  return null;
+                };
+
+                const getNomeEstabelecimento = () => {
+                  const tabelaNavegacao = document.getElementById("navegacao");
+                  if (!tabelaNavegacao) return null;
+                  
+                  const celulas = tabelaNavegacao.querySelectorAll("td");
+                  for (const celula of celulas) {
+                    const texto = celula.textContent || celula.innerText;
+                    if (texto && (texto.includes("Estabelecimentos") || texto.includes("Estabelecimento"))) {
+                      const match = texto.match(/Estabelecimentos?\s*(?:de\s*Saúde)?:?\s*(.+)/i);
+                      if (match && match[1]) {
+                        return formatarTexto(match[1]);
+                      }
+                    }
+                  }
+                  return null;
                 };
 
                 const coletarItensProdutos = () => {
@@ -155,11 +196,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 };
 
                 const dados = {
+                  // Dados do Estabelecimento e Operador
+                  nomeEstabelecimento: getNomeEstabelecimento(),
+                  nomeOperador: getNomeOperador(),
+                  
+                  // Dados do Paciente
                   nuCartaoSus: getFieldValue("dispensacaoForm:nuCartaoSus"),
                   coPaciente: getFieldValue("dispensacaoForm:coPaciente"),
                   noNome: getFieldValue("dispensacaoForm:noNome"),
                   dtNascimento: getFieldValue("dispensacaoForm:dtNascimento"),
                   dsObservacao: getFieldValue("dispensacaoForm:dsObservacao"),
+                  
+                  // Dados da Receita
                   coSeqOrigemReceita: getFieldValue("dispensacaoForm:coSeqOrigemReceita"),
                   coSubgrupoOrigemReceita: getFieldValue("dispensacaoForm:coSubgrupoOrigemReceita"),
                   coCrmMedico: getFieldValue("dispensacaoForm:coCrmMedico"),
@@ -168,6 +216,8 @@ document.addEventListener("DOMContentLoaded", () => {
                   nuConselho: getFieldValue("dispensacaoForm:nuConselho"),
                   nuReceita: getFieldValue("dispensacaoForm:nuReceita"),
                   dtReceita: getFieldValue("dispensacaoForm:dtReceitaInputDate"),
+                  
+                  // Produtos/Itens
                   itens: coletarItensProdutos()
                 };
 

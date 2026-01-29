@@ -39,11 +39,55 @@ function getDisponibilidade() {
   return "Não informado";
 }
 
+function getNomeOperador() {
+  // Procura pela tabela de navegação
+  const tabelaNavegacao = document.getElementById("navegacao");
+  if (!tabelaNavegacao) return null;
+  
+  // Procura por células que contenham "Operador:"
+  const celulas = tabelaNavegacao.querySelectorAll("td");
+  for (const celula of celulas) {
+    const texto = celula.textContent || celula.innerText;
+    if (texto && texto.includes("Operador:")) {
+      // Extrai o nome após "Operador:"
+      const match = texto.match(/Operador:\s*(.+)/i);
+      if (match && match[1]) {
+        return formatarTexto(match[1]);
+      }
+    }
+  }
+  return null;
+}
+
+function getNomeEstabelecimento() {
+  // Procura pela tabela de navegação
+  const tabelaNavegacao = document.getElementById("navegacao");
+  if (!tabelaNavegacao) return null;
+  
+  // Procura por células que contenham "Estabelecimentos"
+  const celulas = tabelaNavegacao.querySelectorAll("td");
+  for (const celula of celulas) {
+    const texto = celula.textContent || celula.innerText;
+    if (texto && (texto.includes("Estabelecimentos") || texto.includes("Estabelecimento"))) {
+      // Extrai o nome após "Estabelecimentos de Saúde:" ou "Estabelecimento:"
+      const match = texto.match(/Estabelecimentos?\s*(?:de\s*Saúde)?:?\s*(.+)/i);
+      if (match && match[1]) {
+        return formatarTexto(match[1]);
+      }
+    }
+  }
+  return null;
+}
+
 function coletarCamposSiteHorus() {
   const form = document.getElementById("dispensacaoForm");
   if (!form) return null;
 
   const dados = {
+    // Dados do Estabelecimento e Operador
+    nomeEstabelecimento: getNomeEstabelecimento(),
+    nomeOperador: getNomeOperador(),
+    
     // Dados do Paciente
     nuCartaoSus: getFieldValue("dispensacaoForm:nuCartaoSus"),
     coPaciente: getFieldValue("dispensacaoForm:coPaciente"),
@@ -84,7 +128,9 @@ function getFieldValue(id) {
     return field.value;
   }
   
-  return field.value || null;
+  // Retorna o valor, mas trata string vazia como null
+  const valor = field.value;
+  return valor && valor.trim() !== "" ? valor.trim() : null;
 }
 
 function coletarItensProdutos() {

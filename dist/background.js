@@ -11861,6 +11861,33 @@ function normalizarPreco(preco) {
     return null;
   return parseFloat(String(preco).replace(",", "."));
 }
+function converterDataParaISO(dataStr) {
+  if (!dataStr || typeof dataStr !== "string")
+    return null;
+  const dataLimpa = dataStr.trim();
+  const matchDMY = dataLimpa.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (matchDMY) {
+    const [, dia, mes, ano] = matchDMY;
+    return `${ano}-${mes}-${dia}`;
+  }
+  const matchISO = dataLimpa.match(/^\d{4}-\d{2}-\d{2}$/);
+  if (matchISO) {
+    return dataLimpa;
+  }
+  return null;
+}
+function converterParaInteiroPositivo(valor) {
+  if (valor === null || valor === void 0 || valor === "")
+    return null;
+  const num = parseInt(String(valor).replace(/[^\d]/g, ""));
+  return isNaN(num) || num <= 0 ? null : num;
+}
+function converterParaDecimalPositivo(valor) {
+  if (valor === null || valor === void 0 || valor === "")
+    return null;
+  const num = parseFloat(String(valor).replace(",", "."));
+  return isNaN(num) || num <= 0 ? null : num;
+}
 async function enviarParaSupabase(ultimaColeta) {
   if (!ultimaColeta) {
     return { sucesso: false, erro: "Nenhum dado para salvar" };
@@ -11868,69 +11895,188 @@ async function enviarParaSupabase(ultimaColeta) {
   try {
     if (ultimaColeta.tipo === "formulario_dispensacao" && ultimaColeta.dados) {
       const dados = ultimaColeta.dados;
+      const codigoPaciente = dados.coPaciente || null;
+      let codigoReceita = dados.nuReceita || null;
+      if (!codigoPaciente) {
+        return {
+          sucesso: false,
+          erro: "Campo obrigat\xF3rio ausente: a001_codigo_paciente (coPaciente)"
+        };
+      }
+      if (!codigoReceita || codigoReceita.trim() === "") {
+        const timestamp = Date.now();
+        const codigoUnico = `AUTO_${codigoPaciente}_${timestamp}`;
+        codigoReceita = codigoUnico;
+        console.warn("\u26A0\uFE0F Campo nuReceita estava vazio, gerando c\xF3digo autom\xE1tico:", codigoReceita);
+      }
       const payloadDispensacao = {
+        // Origem da captura
         a001_site: ultimaColeta.site || "horus.saude.gov.br",
         a001_url: ultimaColeta.url,
         a001_tipo: ultimaColeta.tipo || "formulario_dispensacao",
         a001_coletado_em: ultimaColeta.coletadoEm || (/* @__PURE__ */ new Date()).toISOString(),
-        // Dados do Paciente
-        a001_co_paciente: dados.coPaciente || null,
-        a001_nu_cartao_sus: dados.nuCartaoSus || null,
-        a001_no_nome: dados.noNome || null,
-        a001_dt_nascimento: dados.dtNascimento || null,
-        a001_ds_observacao: dados.dsObservacao || null,
-        // Dados da Receita
-        a001_co_seq_origem_receita: dados.coSeqOrigemReceita?.value || dados.coSeqOrigemReceita || null,
-        a001_co_seq_origem_receita_text: dados.coSeqOrigemReceita?.text || null,
-        a001_co_subgrupo_origem_receita: dados.coSubgrupoOrigemReceita?.value || dados.coSubgrupoOrigemReceita || null,
-        a001_co_subgrupo_origem_receita_text: dados.coSubgrupoOrigemReceita?.text || null,
-        a001_co_crm_medico: dados.coCrmMedico || null,
-        a001_medico: dados.medico || null,
-        a001_no_prescritor: dados.noPrescritor || null,
-        a001_nu_conselho: dados.nuConselho || null,
-        a001_nu_receita: dados.nuReceita || null,
-        a001_dt_receita: dados.dtReceita || null
+        // Receita (campos obrigatórios)
+        a001_cod_receita: codigoReceita,
+        a001_data_receita: converterDataParaISO(dados.dtReceita),
+        // Estabelecimento / Operador
+        a001_estabelecimento_saude: dados.nomeEstabelecimento || null,
+        a001_operador: dados.nomeOperador || null,
+        // Paciente (a001_codigo_paciente é obrigatório)
+        a001_codigo_paciente: codigoPaciente,
+        a001_cod_cartao_sus: dados.nuCartaoSus || null,
+        a001_paciente_nome: dados.noNome || null,
+        a001_paciente_nascimento: converterDataParaISO(dados.dtNascimento),
+        a001_observacao: dados.dsObservacao || null,
+        // Médico
+        a001_medico_crm: dados.coCrmMedico || null,
+        a001_medico_nome: dados.medico || null,
+        a001_nmr_conselho: dados.nuConselho || null,
+        // Origem da receita
+        a001_codigo_origem_receita: dados.coSeqOrigemReceita?.value || dados.coSeqOrigemReceita || null,
+        a001_local_origem_receita: dados.coSeqOrigemReceita?.text || null,
+        a001_cod_subgrupo_origem_receita: dados.coSubgrupoOrigemReceita?.value || dados.coSubgrupoOrigemReceita || null,
+        a001_subgrupo_local_origem_receita: dados.coSubgrupoOrigemReceita?.text || null
       };
       console.log("\u{1F4E4} Salvando dispensa\xE7\xE3o:", payloadDispensacao);
-      const { data: dispensacaoData, error: dispensacaoError } = await supabase.from("a001_dispensacoes").insert([payloadDispensacao]).select().single();
+      const { data: dispensacaoExistente, error: erroBusca } = await supabase.from("a001_dispensacoes").select("a001_id").eq("a001_codigo_paciente", codigoPaciente).eq("a001_cod_receita", codigoReceita).eq("a001_site", payloadDispensacao.a001_site).maybeSingle();
+      if (erroBusca) {
+        console.error("\u274C Erro ao verificar dispensa\xE7\xE3o existente:", erroBusca);
+      }
+      let dispensacaoData;
+      if (dispensacaoExistente) {
+        console.warn("\u26A0\uFE0F Dispensa\xE7\xE3o j\xE1 existe no banco:", dispensacaoExistente.a001_id);
+        dispensacaoData = dispensacaoExistente;
+        return {
+          sucesso: false,
+          erro: `Dispensa\xE7\xE3o j\xE1 existe no banco de dados. ID: ${dispensacaoExistente.a001_id}. A constraint UNIQUE (paciente, receita, site) impede duplicatas.`,
+          dados: dispensacaoExistente,
+          duplicado: true
+        };
+      }
+      const { data: novaDispensacao, error: dispensacaoError } = await supabase.from("a001_dispensacoes").insert([payloadDispensacao]).select().single();
       if (dispensacaoError) {
         console.error("\u274C Erro ao salvar dispensa\xE7\xE3o:", dispensacaoError);
+        const erroMsg = JSON.stringify(dispensacaoError);
+        if (erroMsg.includes("unq_paciente_receita") || erroMsg.includes("duplicate key") || erroMsg.includes("unique constraint")) {
+          return {
+            sucesso: false,
+            erro: "Dispensa\xE7\xE3o duplicada: j\xE1 existe uma dispensa\xE7\xE3o com a mesma combina\xE7\xE3o de paciente, receita e site no banco de dados.",
+            duplicado: true
+          };
+        }
         return {
           sucesso: false,
           erro: "Erro ao salvar dispensa\xE7\xE3o: " + JSON.stringify(dispensacaoError, null, 2)
         };
       }
+      dispensacaoData = novaDispensacao;
       console.log("\u2705 Dispensa\xE7\xE3o salva:", dispensacaoData);
       let itensSalvos = 0;
+      let itensComErro = 0;
       if (dados.itens && Array.isArray(dados.itens) && dados.itens.length > 0) {
-        const itensPayload = dados.itens.map((item) => ({
-          a002_dispensacao_id: dispensacaoData.a001_id,
-          a002_co_seq_produto: item.produto?.coSeqProduto || null,
-          a002_ds_produto: item.produto?.dsProduto || null,
-          a002_qt_dose: item.qtDose ? parseFloat(item.qtDose) : null,
-          a002_unidade_consumo: item.unidadeConsumo || null,
-          a002_frequencia: item.qtPosologia || null,
-          a002_qt_duracao_tratam_dia: item.qtDuracaoTratamDia ? parseInt(item.qtDuracaoTratamDia) : null,
-          a002_nu_dias_dispensar: item.nuDiasDispensar ? parseInt(item.nuDiasDispensar) : null,
-          a002_item_index: item.index !== void 0 ? item.index : 0
-        }));
-        console.log("\u{1F4E4} Salvando itens:", itensPayload);
-        const { data: itensData, error: itensError } = await supabase.from("a002_dispensacao_itens").insert(itensPayload);
-        if (itensError) {
-          console.error("\u274C Erro ao salvar itens:", itensError);
-          return {
-            sucesso: true,
-            dados: dispensacaoData,
-            aviso: "Dispensa\xE7\xE3o salva, mas houve erro ao salvar itens: " + JSON.stringify(itensError, null, 2)
-          };
+        const itensPayload = [];
+        for (const item of dados.itens) {
+          const formulaProduto = item.produto?.dsProduto || null;
+          const qtDose = converterParaDecimalPositivo(item.qtDose);
+          const frequencia = converterParaInteiroPositivo(item.qtPosologia);
+          const duracaoTratamDia = converterParaInteiroPositivo(item.qtDuracaoTratamDia);
+          const nmrDiasDispensar = converterParaInteiroPositivo(item.nuDiasDispensar);
+          const itemIndex = item.index !== void 0 && item.index >= 0 ? item.index : 0;
+          if (!formulaProduto) {
+            console.warn("\u26A0\uFE0F Item ignorado: a002_formula_produto \xE9 obrigat\xF3rio", item);
+            itensComErro++;
+            continue;
+          }
+          if (!qtDose) {
+            console.warn("\u26A0\uFE0F Item ignorado: a002_qt_dose deve ser maior que 0", item);
+            itensComErro++;
+            continue;
+          }
+          if (!frequencia) {
+            console.warn("\u26A0\uFE0F Item ignorado: a002_frequencia deve ser maior que 0", item);
+            itensComErro++;
+            continue;
+          }
+          if (!duracaoTratamDia) {
+            console.warn("\u26A0\uFE0F Item ignorado: a002_duracao_tratam_dia deve ser maior que 0", item);
+            itensComErro++;
+            continue;
+          }
+          if (!nmrDiasDispensar) {
+            console.warn("\u26A0\uFE0F Item ignorado: a002_nmr_dias_dispensar deve ser maior que 0", item);
+            itensComErro++;
+            continue;
+          }
+          itensPayload.push({
+            a002_dispensacao_id_a001: dispensacaoData.a001_id,
+            a002_codigo_produto: item.produto?.coSeqProduto || null,
+            a002_formula_produto: formulaProduto,
+            a002_qt_dose: qtDose,
+            a002_forma_consumo: item.unidadeConsumo || null,
+            a002_frequencia: frequencia,
+            a002_duracao_tratam_dia: duracaoTratamDia,
+            a002_nmr_dias_dispensar: nmrDiasDispensar,
+            a002_item_index: itemIndex
+          });
         }
-        console.log("\u2705 Itens salvos:", itensData);
-        itensSalvos = dados.itens.length;
+        if (itensPayload.length > 0) {
+          const { data: itensExistentes, error: erroBuscaItens } = await supabase.from("a002_dispensacao_itens").select("a002_item_index").eq("a002_dispensacao_id_a001", dispensacaoData.a001_id);
+          if (erroBuscaItens) {
+            console.warn("\u26A0\uFE0F Erro ao verificar itens existentes:", erroBuscaItens);
+          }
+          const indicesExistentes = new Set((itensExistentes || []).map((i) => i.a002_item_index));
+          const itensParaInserir = itensPayload.filter((item) => {
+            if (indicesExistentes.has(item.a002_item_index)) {
+              console.warn(`\u26A0\uFE0F Item com \xEDndice ${item.a002_item_index} j\xE1 existe, ignorando...`);
+              itensComErro++;
+              return false;
+            }
+            return true;
+          });
+          if (itensParaInserir.length === 0) {
+            console.warn("\u26A0\uFE0F Todos os itens j\xE1 existem no banco ou foram filtrados");
+          } else {
+            console.log("\u{1F4E4} Salvando itens:", itensParaInserir);
+            const { data: itensData2, error: itensError } = await supabase.from("a002_dispensacao_itens").insert(itensParaInserir);
+            if (itensError) {
+              console.error("\u274C Erro ao salvar itens:", itensError);
+              const erroMsg = JSON.stringify(itensError);
+              if (erroMsg.includes("unq_item_por_dispensacao") || erroMsg.includes("duplicate key") || erroMsg.includes("unique constraint")) {
+                return {
+                  sucesso: true,
+                  dados: dispensacaoData,
+                  aviso: `Dispensa\xE7\xE3o salva, mas alguns itens n\xE3o foram salvos por j\xE1 existirem no banco (constraint UNIQUE). Itens ignorados por valida\xE7\xE3o: ${itensComErro}`
+                };
+              }
+              return {
+                sucesso: true,
+                dados: dispensacaoData,
+                aviso: `Dispensa\xE7\xE3o salva, mas houve erro ao salvar itens: ${JSON.stringify(itensError, null, 2)}. Itens ignorados por valida\xE7\xE3o: ${itensComErro}`
+              };
+            }
+            console.log("\u2705 Itens salvos:", itensData2);
+            itensSalvos = itensParaInserir.length;
+          }
+          console.log("\u2705 Itens salvos:", itensData);
+          itensSalvos = itensPayload.length;
+        } else {
+          console.warn("\u26A0\uFE0F Nenhum item v\xE1lido para salvar. Todos os itens foram ignorados por valida\xE7\xE3o.");
+        }
+        if (itensComErro > 0) {
+          console.warn(`\u26A0\uFE0F ${itensComErro} item(ns) foram ignorados por n\xE3o atenderem aos requisitos de valida\xE7\xE3o`);
+        }
+      }
+      let mensagem = `Dados salvos com sucesso! Dispensa\xE7\xE3o ID: ${dispensacaoData.a001_id}`;
+      if (itensSalvos > 0) {
+        mensagem += `, Itens salvos: ${itensSalvos}`;
+      }
+      if (itensComErro > 0) {
+        mensagem += `, Itens ignorados: ${itensComErro}`;
       }
       return {
         sucesso: true,
         dados: dispensacaoData,
-        mensagem: `Dados salvos com sucesso! Dispensa\xE7\xE3o ID: ${dispensacaoData.a001_id}, Itens: ${itensSalvos}`
+        mensagem
       };
     } else {
       const payload = {
