@@ -314,9 +314,6 @@ export async function enviarParaSupabase(ultimaColeta) {
             console.log("✅ Itens salvos:", itensData);
             itensSalvos = itensParaInserir.length;
           }
-
-          console.log("✅ Itens salvos:", itensData);
-          itensSalvos = itensPayload.length;
         } else {
           console.warn("⚠️ Nenhum item válido para salvar. Todos os itens foram ignorados por validação.");
         }

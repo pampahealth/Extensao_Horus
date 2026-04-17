@@ -12037,7 +12037,7 @@ async function enviarParaSupabase(ultimaColeta) {
             console.warn("\u26A0\uFE0F Todos os itens j\xE1 existem no banco ou foram filtrados");
           } else {
             console.log("\u{1F4E4} Salvando itens:", itensParaInserir);
-            const { data: itensData2, error: itensError } = await supabase.from("a002_dispensacao_itens").insert(itensParaInserir);
+            const { data: itensData, error: itensError } = await supabase.from("a002_dispensacao_itens").insert(itensParaInserir);
             if (itensError) {
               console.error("\u274C Erro ao salvar itens:", itensError);
               const erroMsg = JSON.stringify(itensError);
@@ -12054,11 +12054,9 @@ async function enviarParaSupabase(ultimaColeta) {
                 aviso: `Dispensa\xE7\xE3o salva, mas houve erro ao salvar itens: ${JSON.stringify(itensError, null, 2)}. Itens ignorados por valida\xE7\xE3o: ${itensComErro}`
               };
             }
-            console.log("\u2705 Itens salvos:", itensData2);
+            console.log("\u2705 Itens salvos:", itensData);
             itensSalvos = itensParaInserir.length;
           }
-          console.log("\u2705 Itens salvos:", itensData);
-          itensSalvos = itensPayload.length;
         } else {
           console.warn("\u26A0\uFE0F Nenhum item v\xE1lido para salvar. Todos os itens foram ignorados por valida\xE7\xE3o.");
         }
