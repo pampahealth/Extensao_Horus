@@ -3,8 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 /* =========================
    CONFIG SUPABASE
 ========================= */
-const SUPABASE_URL = "https://asxujexunamamwiriqte.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzeHVqZXh1bmFtYW13aXJpcXRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4MDQyNDcsImV4cCI6MjA4MzM4MDI0N30.CrT3BS4ZsfmLLA-sOJEOzge2Q3C_DX-lO5lONl0Pcj4";
+const SUPABASE_URL = "http://116.202.27.216/api/horus";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNjQ4NjU4NDAwLCJleHAiOjE5NjQyMDQ4MDB9.6lkYUrysHAhkm014dj7cx3DgYVAYZzwP2QjiNDwA-sk";
 
 const supabase = createClient(
   SUPABASE_URL,
