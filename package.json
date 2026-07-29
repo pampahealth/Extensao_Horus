@@ -1,10 +1,13 @@
 {
   "name": "teste-plugin-",
-  "version": "1.1.0",
-  "description": "",
+  "version": "1.3.0",
+  "description": "Extensão Chrome - coletor Hórus → Banco A",
   "main": "background.js",
   "scripts": {
-    "build": "esbuild src/popup.js --bundle --outfile=dist/popup.js --format=esm && esbuild background.js --bundle --outfile=dist/background.js --format=esm"
+    "build": "esbuild background.js --bundle --outfile=dist/background.js --format=iife",
+    "check": "node --check coleta-horus.js && node --check supabase-utils.js && node --check background.js && node --check scrape_universal.js",
+    "test:coleta": "node test/testar-coleta.mjs",
+    "pack": "npm run check && npm run build && rm -rf \"release/Coletor de dados Horus\" && mkdir -p \"release/Coletor de dados Horus/dist\" && cp manifest.json scrape_universal.js coleta-horus.js INSTALACAO_EXTENSAO.md \"release/Coletor de dados Horus/\" && cp dist/background.js \"release/Coletor de dados Horus/dist/\" && cd release && rm -f Coletor-de-dados-Horus-v1.3.0.zip && zip -r Coletor-de-dados-Horus-v1.3.0.zip \"Coletor de dados Horus\" -x \"*/.*\" && ls -la"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +16,7 @@
     "@supabase/supabase-js": "^2.89.0"
   },
   "devDependencies": {
-    "esbuild": "^0.20.2"
+    "esbuild": "^0.20.2",
+    "jsdom": "^24.1.3"
   }
 }
